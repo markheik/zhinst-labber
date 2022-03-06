@@ -61,7 +61,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+venv*/
 #db, web
 .DS_Store
 
