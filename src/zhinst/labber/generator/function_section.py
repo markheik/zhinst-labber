@@ -29,7 +29,7 @@ class FunctionParser:
         self.root_path = ''
         self._functions = []
 
-    def get_functions(self):
+    def get_functions(self) -> t.List[str]:
         return self._functions
 
     def functions(self, obj):
