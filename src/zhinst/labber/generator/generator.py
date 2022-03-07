@@ -1,3 +1,4 @@
+import configparser
 import re
 import typing as t
 from copy import deepcopy
@@ -38,10 +39,10 @@ def general_settings_module(config, module):
     config.set(section, "startup", f'Do nothing')
 
 
-def nodes_to_dict(node) -> t.Dict:
+def nodes_to_dict(node: t.Dict) -> t.Dict:
     return {k[0]: k[1] for k in node}
 
-def node_in_ignored(node, ignored):
+def node_in_ignored(node: str, ignored: t.List[str]) -> bool:
     if ignored:
         for ignored_node in ignored:
             if ignored_node in node.lower():
@@ -49,7 +50,12 @@ def node_in_ignored(node, ignored):
         return False
     return False
 
-def to_config(root_node, config, ignored_funcs: t.Optional[t.List[str]] = None, ignored_nodes: t.Optional[t.List[str]] = None):
+def to_config(
+    root_node: t.Dict, 
+    config: configparser.ConfigParser, 
+    ignored_funcs: t.List[str] = [],
+    ignored_nodes: t.List[str] = []
+    ) -> configparser.ConfigParser:
     for node, info in root_node:
         if node_in_ignored(info['Node'], ignored_nodes):
             continue
@@ -64,10 +70,15 @@ def to_config(root_node, config, ignored_funcs: t.Optional[t.List[str]] = None, 
                 config.set(k, kk, vv)
 
     from zhinst.labber.generator.custom import CustomLabel
-    
+
 
     config_2 = []
- 
+    # filetype to section when PATH set_cmd, get_cmd
+    # functions no return --> checkbox
+    # functions return --> get from device
+    
+    
+    # Find better solutions for this
     for k, v in config.items():
         if ('LOAD_SEQUENCER_PROGRAM - SEQUENCER_PROGRAM') in k:
             v['DATATYPE'] = 'PATH'
@@ -77,6 +88,7 @@ def to_config(root_node, config, ignored_funcs: t.Optional[t.List[str]] = None, 
             v['DATATYPE'] = 'STRING'
             v['TOOLTIP'] = tooltip('Indexes separated by comma.')
 
+        # Find better solutions for this
         r = re.match(r'(?i)qachannels - \d - generator - waveforms - \d - wave', k)
         if r:
             b = deepcopy(v)

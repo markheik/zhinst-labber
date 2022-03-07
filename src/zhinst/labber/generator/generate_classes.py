@@ -3,7 +3,7 @@ import black
 import autoflake
 
 
-def generate_labber_device_driver_code(classname, settings_file):
+def generate_labber_device_driver_code(classname: str, settings_file: str) -> str:
     data = {
         "class": {
             'name': classname

@@ -1,3 +1,4 @@
+import configparser
 import typing as t
 import re
 from functools import wraps
@@ -5,7 +6,7 @@ from . import helpers
 
 
 class NodeSection:
-    def __init__(self, node: dict):
+    def __init__(self, node: t.Dict):
         self.node = node
         self.node.setdefault('Options', {})
         self._node_path = node["Node"].upper()
@@ -104,33 +105,43 @@ class NodeSection:
             return "VECTOR"
         if unit == "String":
             return "STRING"
+        if unit == 'ZIAdvisorWave':
+            return 'VECTOR'
+        if unit == 'Complex Double':
+            return 'COMPLEX'
+        if unit == 'ZIVectorData':
+            return 'VECTOR'
+        if unit == 'ZIDemodSample':
+            return 'VECTOR'
+        if unit == 'ZIDIOSample':
+            return 'VECTOR'
 
     def _delete_root_node(self, path: str) -> str:
         return re.sub(r"/DEV(\d+)", "", path)[1:]
 
     def set_cmd(self) -> t.Optional[str]:
-        if "read" in self._properties:
-            return self._delete_root_node(self._node_path)
-
-    def get_cmd(self) -> t.Optional[str]:
         if "write" in self._properties:
             return self._delete_root_node(self._node_path)
 
-    def to_config(self, config):
-        sec_namex = self.label()
-        config.add_section(sec_namex)
-        config.set(sec_namex, "section", self.section())
-        config.set(sec_namex, "group", self.group())
-        config.set(sec_namex, "label", self.label())
-        config.set(sec_namex, "datatype", self.datatype()) if self.datatype() else ...
-        config.set(sec_namex, "unit", self.unit()) if self.unit() else ...
-        config.set(sec_namex, "tooltip", self.tooltip())
+    def get_cmd(self) -> t.Optional[str]:
+        if "read" in self._properties:
+            return self._delete_root_node(self._node_path)
+
+    def to_config(self, config: configparser.ConfigParser) -> None:
+        sec_name = self.label()
+        config.add_section(sec_name)
+        config.set(sec_name, "section", self.section())
+        config.set(sec_name, "group", self.group())
+        config.set(sec_name, "label", self.label())
+        config.set(sec_name, "datatype", self.datatype()) if self.datatype() else ...
+        config.set(sec_name, "unit", self.unit()) if self.unit() else ...
+        config.set(sec_name, "tooltip", self.tooltip())
 
         for item in self.combo_def():
             for k, v in item.items():
-                config.set(sec_namex, k, v)
+                config.set(sec_name, k, v)
 
-        config.set(sec_namex, "permission", self.permission()) if self.permission() else ...
-        config.set(sec_namex, "set_cmd", self.set_cmd()) if self.set_cmd() else ...
-        config.set(sec_namex, "get_cmd", self.get_cmd()) if self.get_cmd() else ...
-        config.set(sec_namex, "show_in_measurement_dlg", self.show_in_measurement_dlg()) if self.show_in_measurement_dlg() else ...
+        config.set(sec_name, "permission", self.permission()) if self.permission() else ...
+        config.set(sec_name, "set_cmd", self.set_cmd()) if self.set_cmd() else ...
+        config.set(sec_name, "get_cmd", self.get_cmd()) if self.get_cmd() else ...
+        config.set(sec_name, "show_in_measurement_dlg", self.show_in_measurement_dlg()) if self.show_in_measurement_dlg() else ...

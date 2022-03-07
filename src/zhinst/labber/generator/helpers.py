@@ -13,7 +13,7 @@ def enum_description(value: str) -> t.Tuple[str, str]:
         return v2[0].strip('"'), v[-1]
     return "", v[0]
 
-def to_labber_format(obj):
+def to_labber_format(obj) -> str:
     TYPE_MAP = {
         str: 'STRING',
         int: 'DOUBLE',
@@ -51,7 +51,7 @@ def _to_html_list(x: t.List[str]) -> str:
     html_list += "</ul>"
     return html_list
 
-def tooltip(desc, node = None, enum = None):
+def tooltip(desc, node = None, enum = None) -> str:
     desc_cleaned = _replace_characters(desc)
     desc = f'<p>{desc_cleaned}</p>'
     enum = f'<p>{_to_html_list(enum)}</p>' if enum else ''

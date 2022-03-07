@@ -29,10 +29,11 @@ class FunctionParser:
         self.root_path = ''
         self._functions = []
 
-    def get_functions(self) -> t.List[str]:
+    def get_functions(self, obj: object) -> t.List[t.Dict[str, str]]:
+        self._function_generator(obj)
         return self._functions
 
-    def functions(self, obj):
+    def _function_generator(self, obj):
         for name, attr in vars(obj).items():
             if name in self.ignores:
                 continue
@@ -46,12 +47,12 @@ class FunctionParser:
                     for k in node_indexes(self.nodes, [name]):
                         self.path = labber_delimiter(self.path, k)
                         self.root_path = self.path
-                        self.functions(th['return'].__args__[0])
+                        self._function_generator(th['return'].__args__[0])
                 elif inspect.isclass(th["return"]):
                     if issubclass(th["return"], Node):
                         self.root_path = self.path
                         self.path = labber_delimiter(self.path, name) if self.path else name
-                        self.functions(th['return'])
+                        self._function_generator(th['return'])
                         self.path = self.root_path
                     else:
                         continue
@@ -65,12 +66,12 @@ class FunctionParser:
                 self._functions.append(d)
 
 
-def function_to_group(func, section):
+def function_to_group(obj, section: str) -> t.List[t.Dict]:
     """Native Python function."""
     items = []
-    group = func.__name__
-    signature = inspect.signature(func)
-    docstring = parse(func.__doc__)
+    group = obj.__name__
+    signature = inspect.signature(obj)
+    docstring = parse(obj.__doc__)
 
     for k, v in signature.parameters.items():
         if k == ('self') or str(v).startswith('*'):
@@ -117,11 +118,10 @@ def function_to_group(func, section):
     return items
 
 
-def functions_to_config(class_, nodes, ignores):
+def functions_to_config(class_: object, nodes: t.Dict[Node, t.Dict], ignores: t.List[str]) -> t.List:
     o = FunctionParser(nodes=nodes, ignores=ignores)
-    o.functions(class_)
     sections = []
-    for item in o.get_functions():
+    for item in o.get_functions(class_):
         fs = {}
         for func in function_to_group(item['obj'], item['section']):
             section = labber_delimiter(item['section_name'], item['name'], func['label'])
