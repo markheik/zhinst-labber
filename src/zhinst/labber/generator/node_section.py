@@ -74,7 +74,6 @@ class NodeSection:
 
     def tooltip(self) -> str:
         node_path = self._delete_root_node(self._node_path.upper()).upper()
-        # node_path = "/DEV..." + "/" + "/".join(self._node_path.split("/")[2:])
         items = []
         for k, v in self.node["Options"].items():
             value, desc = helpers.enum_description(v)
@@ -116,24 +115,6 @@ class NodeSection:
     def get_cmd(self) -> t.Optional[str]:
         if "write" in self._properties:
             return self._delete_root_node(self._node_path)
-
-    def as_dict(self):
-        d = {
-            'section': self.section(),
-            'group': self.group(),
-            'label': self.label(),
-            'datatype': self.datatype(),
-            'unit': self.unit(),
-            'tooltip': self.tooltip(),
-            
-        }
-        for item in self.combo_def():
-            for k, v in item.items():
-                d[k] = v
-        d['permission'] = self.permission()
-        d['set_cmd'] = self.set_cmd()
-        d['show_in_measurement_dlg'] = self.show_in_measurement_dlg()
-        return d
 
     def to_config(self, config):
         sec_namex = self.label()

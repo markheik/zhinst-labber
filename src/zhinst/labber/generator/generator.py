@@ -1,18 +1,11 @@
-from collections import defaultdict
-import configparser
-from logging import root
+import re
 import typing as t
+from copy import deepcopy
 
 from .node_section import NodeSection
 from .function_section import functions_to_config
 from .helpers import tooltip
 from zhinst.labber.generator.helpers import LABBER_DELIMITER_VALUE
-
-
-# All modules separate INI file.
-# DataServer separate instrument
-# Test individual function
-# Two entries for both waves. CSV / reading
 
 
 def general_settings_device(config, device):
@@ -57,18 +50,11 @@ def node_in_ignored(node, ignored):
     return False
 
 def to_config(root_node, config, ignored_funcs: t.Optional[t.List[str]] = None, ignored_nodes: t.Optional[t.List[str]] = None):
-    SECTIONS_ = [
-        {'root': root_node, 'handler': NodeSection},
-        # {'root': session.modules.sweeper, 'handler': NodeSection},
-    ]
-
-    for item in SECTIONS_:
-        handler = item['handler']
-        for node, leaf in item['root']:
-            if node_in_ignored(leaf['Node'], ignored_nodes):
-                continue
-            sec = handler(leaf)
-            sec.to_config(config)
+    for node, info in root_node:
+        if node_in_ignored(info['Node'], ignored_nodes):
+            continue
+        sec = NodeSection(info)
+        sec.to_config(config)
 
     secs = functions_to_config(class_=root_node.__class__, nodes=nodes_to_dict(root_node), ignores=ignored_funcs)
     for sec in secs:
@@ -77,9 +63,7 @@ def to_config(root_node, config, ignored_funcs: t.Optional[t.List[str]] = None, 
             for kk, vv in v.items():
                 config.set(k, kk, vv)
 
-    import re
     from zhinst.labber.generator.custom import CustomLabel
-    from copy import deepcopy, copy
     
 
     config_2 = []

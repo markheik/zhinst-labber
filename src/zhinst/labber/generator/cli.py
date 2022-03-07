@@ -3,7 +3,7 @@ import configparser
 import typing as t
 from pathlib import Path
 import json
-    
+
 from zhinst.toolkit import Session
 from zhinst.labber.generator.generator import (
     to_config,
@@ -11,10 +11,7 @@ from zhinst.labber.generator.generator import (
     general_settings_device,
     general_settings_dataserver
 )
-from zhinst.labber.generator.custom import CustomLabel
-# Create .py file for device
-# settings file
-# directory
+from zhinst.labber.generator.generate_classes import generate_labber_device_driver_code
 
 
 IGNORED_FUNCTIONS = {
@@ -67,7 +64,7 @@ def cli_generator(filepath: str, device: str, server_host: str, server_port: int
     config = configparser.ConfigParser()
     general_settings_device(device=dev, config=config)
     config = to_config(dev, config, IGNORED_FUNCTIONS[dev.device_type])
-    dev_dir = root_path / f'Zurich_Instruments_{dev.device_type.upper()}_Module'
+    dev_dir = root_path / f'Zurich_Instruments_{dev.device_type.upper()}'
     dev_dir.mkdir(exist_ok=True)
     with open(f'{dev_dir}/Zurich_Instruments_{dev.device_type.upper()}.ini', "w", encoding='utf-8') as config_file:
         config.write(config_file)
@@ -83,8 +80,13 @@ def cli_generator(filepath: str, device: str, server_host: str, server_port: int
             "type": dev.device_type.upper()
         }
     }
-    with open(f'{dev_dir}/settings.json', 'w') as json_file:
+    dev_settings_path = dev_dir / 'settings.json'
+    with open(dev_settings_path, 'w') as json_file:
         json.dump(settings, json_file)
+
+    gen_code = generate_labber_device_driver_code(dev.device_type.upper(), dev_settings_path)
+    with open(dev_dir / f'Zurich_Instruments_{dev.device_type.upper()}.py', 'w') as f:
+        f.write(gen_code)
 
     # Module
     # ModuleHandler not iterable
@@ -116,10 +118,10 @@ def cli_generator(filepath: str, device: str, server_host: str, server_port: int
                 "type": module.upper()
             }
         }
-        with open(f'{mod_dir}/settings.json', 'w') as json_file:
+        mod_settings_path = mod_dir/ 'settings.json'
+        with open(mod_settings_path, 'w') as json_file:
             json.dump(settings, json_file)
 
-        _py_file = f'Zurich_Instruments_{module.upper()}_Module.py'
-
-
-cli_generator('configs', 'dev12019', 'localhost')
+        gen_code = generate_labber_device_driver_code(f'{module.upper()}Module', mod_settings_path)
+        with open(mod_dir / f'Zurich_Instruments_{module.upper()}_Module.py', 'w') as f:
+            f.write(gen_code)
