@@ -168,12 +168,12 @@ class NodeSection:
         path = '/' + self._node_path if not self._node_path.startswith('/') else self._node_path
         r = REPLACED_NODES.get(replace_node_ch_n(path), {})
         d.update(r)
-        return d
+        return {self.label: d}
 
-    def to_config(self, config: configparser.ConfigParser) -> None:
-        config.add_section(self.label)
-        for k, v in self.as_dict().items():
-            config.set(self.label, k, v)
+    # def to_config(self, config: configparser.ConfigParser) -> None:
+    #     config.add_section(self.label)
+    #     for k, v in self.as_dict().items():
+    #         config.set(self.label, k, v)
 
         # config.add_section(sec_name)
         # config.set(sec_name, "section", self.section)

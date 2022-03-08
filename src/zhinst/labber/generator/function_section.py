@@ -20,6 +20,7 @@ def node_indexes(nodes: t.Dict[Node, dict], target: t.List[str]) -> t.List[str]:
                         chs.append(path[idx_+1])
     return chs
 
+
 class FunctionParser:
     def __init__(self, nodes: t.Dict, ignores: t.List[str]):
         self.nodes = nodes
@@ -69,6 +70,7 @@ def function_to_group(obj, section: str) -> t.List[t.Dict]:
     group = obj.__name__
     signature = inspect.signature(obj)
     docstring = parse(obj.__doc__)
+    return_type = signature.return_annotation
 
     for k, v in signature.parameters.items():
         if k == ('self') or str(v).startswith('*'):
@@ -108,10 +110,28 @@ def function_to_group(obj, section: str) -> t.List[t.Dict]:
         except KeyError:
             ...
         items.append(item)
+
+    if return_type != inspect._empty and return_type is not None:
+        permission = 'READ'
+        if isinstance(return_type, int):
+            dt = 'DOUBLE'
+        if isinstance(return_type, bool):
+            dt = 'BOOLEAN'
+        if isinstance(return_type, float):
+            dt = 'DOUBLE'
+        if isinstance(return_type, str):
+            dt = 'STRING'
+        else:
+            dt = 'PATH'
+    else:
+        dt = 'BOOLEAN'
+        permission = 'WRITE'
+    label = 'EXECUTEFUNC' if dt != 'PATH' else 'csv'
     items.append(
         {
-            'label': 'EXECUTEFUNC', 
-            'datatype': 'BUTTON', 
+            'label': label, 
+            'datatype': dt, 
+            'permission': permission,
             'group': labber_delimiter(section.upper(), group.upper()),
             'section': section.upper() if section else 'DEVICE',
             'tooltip': tooltip(docstring.short_description),
@@ -120,14 +140,12 @@ def function_to_group(obj, section: str) -> t.List[t.Dict]:
     return items
 
 
-def functions_to_config(class_: object, nodes: t.Dict[Node, t.Dict], ignores: t.List[str]) -> t.List:
+def functions_to_config(class_: object, nodes: t.Dict[Node, t.Dict], ignores: t.List[str]) -> t.Dict:
     o = FunctionParser(nodes=nodes, ignores=ignores)
-    sections = []
+    fs = {}
     for item in o.get_functions(class_):
-        fs = {}
         for func in function_to_group(item['obj'], item['section']):
             section = labber_delimiter(item['title'], func['label'])
             func['group'] = item['title']
             fs[section] = func
-        sections.append(fs)
-    return sections
+    return fs

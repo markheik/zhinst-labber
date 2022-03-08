@@ -10,15 +10,14 @@ from zhinst.labber.generator.function_section import (
     functions_to_config,
 )
 from zhinst.toolkit.nodetree import Node
-from zhinst.toolkit.driver.nodes.awg import AWG
+from zhinst.toolkit.driver.nodes.generator import Generator as ZIGen
 
 
 def test_function_to_group_func_replace():
-    r = function_section.function_to_group(AWG.load_sequencer_program, "t")
+    r = function_section.function_to_group(ZIGen.load_sequencer_program, "t")
     assert r == [
         {
             "datatype": "PATH",
-            "datatype": "STRING",
             "group": "T - LOAD_SEQUENCER_PROGRAM",
             "label": "SEQUENCER_PROGRAM",
             "permission": "WRITE",
@@ -28,21 +27,22 @@ def test_function_to_group_func_replace():
         },
         {
             "datatype": "DOUBLE",
-            "def_value": "100.0",
+            "def_value": "10",
             "group": "T - LOAD_SEQUENCER_PROGRAM",
             "label": "TIMEOUT",
             "permission": "WRITE",
             "section": "T",
             "tooltip": "<html><body><p>Maximum time to wait for the compilation on the "
-            "device in seconds.</p></body></html>",
+            "device in seconds. (default = 10s)</p></body></html>",
         },
         {
-            "datatype": "BUTTON",
+            "datatype": "BOOLEAN",
             "group": "T - LOAD_SEQUENCER_PROGRAM",
             "label": "EXECUTEFUNC",
+            "permission": "WRITE",
             "section": "T",
-            "tooltip": "<html><body><p>Compiles the current SequenceProgram on the AWG "
-            "Core.</p></body></html>",
+            "tooltip": "<html><body><p>Compiles and loads a sequencer "
+            "program.</p></body></html>",
         },
     ]
 
@@ -79,9 +79,10 @@ def test_function_to_group_func_no_args():
     r = function_section.function_to_group(func_no_args, "t")
     assert r == [
         {
-            "datatype": "BUTTON",
+            "datatype": "BOOLEAN",
             "group": "T - FUNC_NO_ARGS",
             "label": "EXECUTEFUNC",
+            "permission": "WRITE",
             "section": "T",
             "tooltip": "<html><body><p></p></body></html>",
         },
@@ -131,9 +132,10 @@ def test_function_to_group_func_args():
             "tooltip": "<html><body><p>Does this.</p></body></html>",
         },
         {
-            "datatype": "BUTTON",
+            "datatype": "PATH",
             "group": "T - FUNC_ARGS",
-            "label": "EXECUTEFUNC",
+            "label": "csv",
+            "permission": "READ",
             "section": "T",
             "tooltip": "<html><body><p>This is a test function.</p></body></html>",
         },
@@ -273,59 +275,53 @@ def test_functions_to_config():
     }
     ignores = [BaseClass.deactivate]
     r = functions_to_config(BaseClass, nodes=nodes, ignores=ignores)
-    assert r == [
-        {
-            "DEVICE - ACTIVATE - EXECUTEFUNC": {
-                "datatype": "BUTTON",
-                "group": "DEVICE - ACTIVATE",
-                "label": "EXECUTEFUNC",
-                "section": "DEVICE",
-                "tooltip": "<html><body><p></p></body></html>",
-            }
+    assert r == {
+        "AWG - 0 - COOL_FUNCTION - EXECUTEFUNC": {
+            "datatype": "BOOLEAN",
+            "group": "AWG - 0 - COOL_FUNCTION",
+            "label": "EXECUTEFUNC",
+            "permission": "WRITE",
+            "section": "AWG - 0",
+            "tooltip": "<html><body><p></p></body></html>",
         },
-        {
-            "AWG - 0 - COOL_FUNCTION - EXECUTEFUNC": {
-                "datatype": "BUTTON",
-                "group": "AWG - 0 - COOL_FUNCTION",
-                "label": "EXECUTEFUNC",
-                "section": "AWG - 0",
-                "tooltip": "<html><body><p></p></body></html>",
-            }
+        "AWG - 0 - GENERATOR - GEN_FUNC - EXECUTEFUNC": {
+            "datatype": "BOOLEAN",
+            "group": "AWG - 0 - " "GENERATOR - " "GEN_FUNC",
+            "label": "EXECUTEFUNC",
+            "permission": "WRITE",
+            "section": "AWG - 0",
+            "tooltip": "<html><body><p></p></body></html>",
         },
-        {
-            "AWG - 0 - GENERATOR - GEN_FUNC - EXECUTEFUNC": {
-                "datatype": "BUTTON",
-                "group": "AWG - 0 - " "GENERATOR - " "GEN_FUNC",
-                "label": "EXECUTEFUNC",
-                "section": "AWG - 0",
-                "tooltip": "<html><body><p></p></body></html>",
-            }
+        "AWG - 1 - CHS - COOL_FUNCTION2 - EXECUTEFUNC": {
+            "datatype": "BOOLEAN",
+            "group": "AWG - 1 - CHS - " "COOL_FUNCTION2",
+            "label": "EXECUTEFUNC",
+            "permission": "WRITE",
+            "section": "AWG - 1",
+            "tooltip": "<html><body><p></p></body></html>",
         },
-        {
-            "AWG - 1 - COOL_FUNCTION - EXECUTEFUNC": {
-                "datatype": "BUTTON",
-                "group": "AWG - 1 - COOL_FUNCTION",
-                "label": "EXECUTEFUNC",
-                "section": "AWG - 1",
-                "tooltip": "<html><body><p></p></body></html>",
-            }
+        "AWG - 1 - COOL_FUNCTION - EXECUTEFUNC": {
+            "datatype": "BOOLEAN",
+            "group": "AWG - 1 - COOL_FUNCTION",
+            "label": "EXECUTEFUNC",
+            "permission": "WRITE",
+            "section": "AWG - 1",
+            "tooltip": "<html><body><p></p></body></html>",
         },
-        {
-            "AWG - 1 - GENERATOR - GEN_FUNC - EXECUTEFUNC": {
-                "datatype": "BUTTON",
-                "group": "AWG - 1 - " "GENERATOR - " "GEN_FUNC",
-                "label": "EXECUTEFUNC",
-                "section": "AWG - 1",
-                "tooltip": "<html><body><p></p></body></html>",
-            }
+        "AWG - 1 - GENERATOR - GEN_FUNC - EXECUTEFUNC": {
+            "datatype": "BOOLEAN",
+            "group": "AWG - 1 - " "GENERATOR - " "GEN_FUNC",
+            "label": "EXECUTEFUNC",
+            "permission": "WRITE",
+            "section": "AWG - 1",
+            "tooltip": "<html><body><p></p></body></html>",
         },
-        {
-            "AWG - 1 - CHS - COOL_FUNCTION2 - EXECUTEFUNC": {
-                "datatype": "BUTTON",
-                "group": "AWG - 1 - CHS - " "COOL_FUNCTION2",
-                "label": "EXECUTEFUNC",
-                "section": "AWG - 1",
-                "tooltip": "<html><body><p></p></body></html>",
-            }
+        "DEVICE - ACTIVATE - EXECUTEFUNC": {
+            "datatype": "BOOLEAN",
+            "group": "DEVICE - ACTIVATE",
+            "label": "EXECUTEFUNC",
+            "permission": "WRITE",
+            "section": "DEVICE",
+            "tooltip": "<html><body><p></p></body></html>",
         },
-    ]
+    }
