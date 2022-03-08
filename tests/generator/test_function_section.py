@@ -4,7 +4,11 @@ import typing as t
 import pytest
 
 from zhinst.labber.generator import function_section
-from zhinst.labber.generator.function_section import FunctionParser, node_indexes
+from zhinst.labber.generator.function_section import (
+    FunctionParser,
+    node_indexes,
+    functions_to_config,
+)
 from zhinst.toolkit.nodetree import Node
 from zhinst.toolkit.driver.nodes.awg import AWG
 
@@ -258,5 +262,70 @@ def test_function_parser():
             "obj": PropertyModuleNo2.cool_function2,
             "section": "AWG - 1",
             "title": "AWG - 1 - CHS - COOL_FUNCTION2",
+        },
+    ]
+
+
+def test_functions_to_config():
+    nodes = {
+        "Node1": {"Node": "DEV123/AWG/0/PropertyModule"},
+        "Node2": {"Node": "DEV123/AWG/1/PropertyModule"},
+    }
+    ignores = [BaseClass.deactivate]
+    r = functions_to_config(BaseClass, nodes=nodes, ignores=ignores)
+    assert r == [
+        {
+            "DEVICE - ACTIVATE - EXECUTEFUNC": {
+                "datatype": "BUTTON",
+                "group": "DEVICE - ACTIVATE",
+                "label": "EXECUTEFUNC",
+                "section": "DEVICE",
+                "tooltip": "<html><body><p></p></body></html>",
+            }
+        },
+        {
+            "AWG - 0 - COOL_FUNCTION - EXECUTEFUNC": {
+                "datatype": "BUTTON",
+                "group": "AWG - 0 - COOL_FUNCTION",
+                "label": "EXECUTEFUNC",
+                "section": "AWG - 0",
+                "tooltip": "<html><body><p></p></body></html>",
+            }
+        },
+        {
+            "AWG - 0 - GENERATOR - GEN_FUNC - EXECUTEFUNC": {
+                "datatype": "BUTTON",
+                "group": "AWG - 0 - " "GENERATOR - " "GEN_FUNC",
+                "label": "EXECUTEFUNC",
+                "section": "AWG - 0",
+                "tooltip": "<html><body><p></p></body></html>",
+            }
+        },
+        {
+            "AWG - 1 - COOL_FUNCTION - EXECUTEFUNC": {
+                "datatype": "BUTTON",
+                "group": "AWG - 1 - COOL_FUNCTION",
+                "label": "EXECUTEFUNC",
+                "section": "AWG - 1",
+                "tooltip": "<html><body><p></p></body></html>",
+            }
+        },
+        {
+            "AWG - 1 - GENERATOR - GEN_FUNC - EXECUTEFUNC": {
+                "datatype": "BUTTON",
+                "group": "AWG - 1 - " "GENERATOR - " "GEN_FUNC",
+                "label": "EXECUTEFUNC",
+                "section": "AWG - 1",
+                "tooltip": "<html><body><p></p></body></html>",
+            }
+        },
+        {
+            "AWG - 1 - CHS - COOL_FUNCTION2 - EXECUTEFUNC": {
+                "datatype": "BUTTON",
+                "group": "AWG - 1 - CHS - " "COOL_FUNCTION2",
+                "label": "EXECUTEFUNC",
+                "section": "AWG - 1",
+                "tooltip": "<html><body><p></p></body></html>",
+            }
         },
     ]

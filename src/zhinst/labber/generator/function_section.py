@@ -36,8 +36,10 @@ class FunctionParser:
         return self._functions
 
     def _function_generator(self, obj, parent):
+        if obj in self.ignores:
+            return
         for name, attr in vars(obj).items():
-            if name in self.ignores:
+            if attr in self.ignores:
                 continue
             if name.startswith('_'):
                 continue
