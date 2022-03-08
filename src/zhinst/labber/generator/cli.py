@@ -6,12 +6,14 @@ import json
 
 from zhinst.toolkit import Session
 from zhinst.labber.generator.generator import (
-    to_config,
+    to_config
+)
+from zhinst.labber.generator.general_settings import (
     general_settings_module,
     general_settings_device,
     general_settings_dataserver
 )
-from zhinst.labber.generator.generate_classes import generate_labber_device_driver_code
+from zhinst.labber.generator.code_generator import generate_labber_device_driver_code
 
 
 IGNORED_FUNCTIONS = {

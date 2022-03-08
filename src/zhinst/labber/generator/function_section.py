@@ -4,22 +4,21 @@ import typing as t
 
 from zhinst.toolkit.nodetree import Node
 from .helpers import labber_delimiter, to_labber_format, tooltip
+from .replaces_nodes import REPLACED_FUNCTIONS
 
 
 def node_indexes(nodes: t.Dict[Node, dict], target: t.List[str]) -> t.List[str]:
+    l_target = list((map(lambda x: x.lower(), target)))
     chs = []
     for k, v in nodes.items():
         path = v['Node'].lower().split('/')
-        if all(x in path for x in target):
-            idx_ = path.index(target[-1])
-            if path[idx_ + 1].isnumeric():
-                if path[idx_+1] not in chs:
-                    chs.append(path[idx_+1])
+        if all(x in path for x in l_target):
+            idx_ = path.index(l_target[-1].lower())
+            if idx_ < len(path) - 1:
+                if path[idx_ + 1].isnumeric():
+                    if path[idx_+1] not in chs:
+                        chs.append(path[idx_+1])
     return chs
-
-
-def nodes_to_dict(node: Node) -> t.Dict:
-    return {k[0]: k[1] for k in node}
 
 class FunctionParser:
     def __init__(self, nodes: t.Dict, ignores: t.List[str]):
@@ -28,12 +27,15 @@ class FunctionParser:
         self.path = ''
         self.root_path = ''
         self._functions = []
+        self.rooot = ''
+        self.idx_root = ''
+        self.bar = 'DEVICE'
 
     def get_functions(self, obj: object) -> t.List[t.Dict[str, str]]:
-        self._function_generator(obj)
+        self._function_generator(obj, 'DEVICE')
         return self._functions
 
-    def _function_generator(self, obj):
+    def _function_generator(self, obj, parent):
         for name, attr in vars(obj).items():
             if name in self.ignores:
                 continue
@@ -42,29 +44,22 @@ class FunctionParser:
             if isinstance(attr, property):
                 th = t.get_type_hints(attr.fget)
                 if "typing.Union" in str(th["return"]) or "typing.Sequence" in str(th["return"]):
-                    self.path = ''
-                    self.path = labber_delimiter(self.path, name) if self.path else name
                     for k in node_indexes(self.nodes, [name]):
-                        self.path = labber_delimiter(self.path, k)
-                        self.root_path = self.path
-                        self._function_generator(th['return'].__args__[0])
+                        self.bar = labber_delimiter(name, k)
+                        self._function_generator(th['return'].__args__[0], self.bar)
                 elif inspect.isclass(th["return"]):
                     if issubclass(th["return"], Node):
-                        self.root_path = self.path
-                        self.path = labber_delimiter(self.path, name) if self.path else name
-                        self._function_generator(th['return'])
-                        self.path = self.root_path
+                        self._function_generator(th['return'], labber_delimiter(self.bar, name))
                     else:
                         continue
             else:
                 d = {
-                    'section': self.root_path if self.root_path else 'DEVICE',
-                    'section_name': self.path if self.path else 'DEVICE',
+                    'section': self.bar,
+                    'title': labber_delimiter(parent, name),
                     'name': name,
                     'obj': attr
                 }
                 self._functions.append(d)
-
 
 def function_to_group(obj, section: str) -> t.List[t.Dict]:
     """Native Python function."""
@@ -105,6 +100,11 @@ def function_to_group(obj, section: str) -> t.List[t.Dict]:
                         enum = [f'{k.name}: {k.value}' for k in type(v.default)]
 
                 item['tooltip'] = tooltip(param.description, enum=enum)
+        try:
+            s = REPLACED_FUNCTIONS[obj][k]
+            item.update(s)
+        except KeyError:
+            ...
         items.append(item)
     items.append(
         {
@@ -124,8 +124,8 @@ def functions_to_config(class_: object, nodes: t.Dict[Node, t.Dict], ignores: t.
     for item in o.get_functions(class_):
         fs = {}
         for func in function_to_group(item['obj'], item['section']):
-            section = labber_delimiter(item['section_name'], item['name'], func['label'])
-            func['group'] = labber_delimiter(item['section_name'], item['name'])
+            section = labber_delimiter(item['title'], func['label'])
+            func['group'] = item['title']
             fs[section] = func
         sections.append(fs)
     return sections

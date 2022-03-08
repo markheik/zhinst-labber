@@ -6,40 +6,10 @@ from copy import deepcopy
 from .node_section import NodeSection
 from .function_section import functions_to_config
 from .helpers import tooltip
-from zhinst.labber.generator.helpers import LABBER_DELIMITER_VALUE
+from zhinst.toolkit.nodetree import Node
 
 
-def general_settings_device(config, device):
-    section = 'General settings'
-    config.add_section(section)
-    config.set(section, "name", f'Zurich Instruments {device.device_type}')
-    config.set(section, "version", f'0.1')
-    config.set(section, "driver_path", f'Zurich_Instruments_{device.device_type}')
-    config.set(section, "interface", f'Other')
-    config.set(section, "startup", f'Do nothing')
-
-
-def general_settings_dataserver(config):
-    section = 'General settings'
-    config.add_section(section)
-    config.set(section, "name", f'Zurich Instruments DataServer')
-    config.set(section, "version", '0.1')
-    config.set(section, "driver_path", f'Zurich_Instruments_DataServer')
-    config.set(section, "interface", f'Other')
-    config.set(section, "startup", f'Do nothing')
-
-
-def general_settings_module(config, module):
-    section = 'General settings'
-    config.add_section(section)
-    config.set(section, "name", f'Zurich Instruments {module.upper()} Module')
-    config.set(section, "version", f'0.1')
-    config.set(section, "driver_path", f'Zurich_Instruments_{module.upper()}_Module')
-    config.set(section, "interface", f'Other')
-    config.set(section, "startup", f'Do nothing')
-
-
-def nodes_to_dict(node: t.Dict) -> t.Dict:
+def nodes_to_dict(node: Node) -> t.Dict:
     return {k[0]: k[1] for k in node}
 
 def node_in_ignored(node: str, ignored: t.List[str]) -> bool:
@@ -51,7 +21,7 @@ def node_in_ignored(node: str, ignored: t.List[str]) -> bool:
     return False
 
 def to_config(
-    root_node: t.Dict, 
+    root_node: Node, 
     config: configparser.ConfigParser, 
     ignored_funcs: t.List[str] = [],
     ignored_nodes: t.List[str] = []
@@ -61,60 +31,56 @@ def to_config(
             continue
         sec = NodeSection(info)
         sec.to_config(config)
-
     secs = functions_to_config(class_=root_node.__class__, nodes=nodes_to_dict(root_node), ignores=ignored_funcs)
     for sec in secs:
         for k, v in sec.items():
             config.add_section(k)
             for kk, vv in v.items():
                 config.set(k, kk, vv)
-
-    from zhinst.labber.generator.custom import CustomLabel
-
-
     config_2 = []
     # filetype to section when PATH set_cmd, get_cmd
     # functions no return --> checkbox
     # functions return --> get from device
-    
-    
+
     # Find better solutions for this
+    # Replace, extend, ignore
+
+
     for k, v in config.items():
-        if ('LOAD_SEQUENCER_PROGRAM - SEQUENCER_PROGRAM') in k:
-            v['DATATYPE'] = 'PATH'
-        elif ('WRITE_TO_WAVEFORM_MEMORY - WAVEFORMS') in k:
-            v['DATATYPE'] = 'PATH'
-        elif ('WRITE_TO_WAVEFORM_MEMORY - INDEXES') in k:
-            v['DATATYPE'] = 'STRING'
-            v['TOOLTIP'] = tooltip('Indexes separated by comma.')
+        ...
+        # if ('LOAD_SEQUENCER_PROGRAM - SEQUENCER_PROGRAM') in k:
+        #     v['DATATYPE'] = 'PATH'
+        # elif ('WRITE_TO_WAVEFORM_MEMORY - WAVEFORMS') in k:
+        #     v['DATATYPE'] = 'PATH'
+        # elif ('WRITE_TO_WAVEFORM_MEMORY - INDEXES') in k:
+        #     v['DATATYPE'] = 'STRING'
+        #     v['TOOLTIP'] = tooltip('Indexes separated by comma.')
 
         # Find better solutions for this
-        r = re.match(r'(?i)qachannels - \d - generator - waveforms - \d - wave', k)
-        if r:
-            b = deepcopy(v)
-            b['label'] = str(k) + ' - ' + 'SET'
-            b['datatype'] = 'PATH'
-            b['permission'] = 'WRITE'
-            config_2.append((b['label'], b))
+        # r = re.match(r'(?i)qachannels - \d - generator - waveforms - \d - wave', k)
+        # if r:
+        #     b = deepcopy(v)
+        #     b['label'] = str(k) + ' - ' + 'SET'
+        #     b['datatype'] = 'PATH'
+        #     b['permission'] = 'WRITE'
+        #     config_2.append((b['label'], b))
 
-        r = re.match(r'(?i)qachannels - \d - readout - integration - weights - \d - wave', k)
-        if r:
-            b = deepcopy(v)
-            b['label'] = str(k) + ' - ' + 'SET'
-            b['datatype'] = 'PATH'
-            b['permission'] = 'WRITE'
-            config_2.append((b['label'], b))
+        # r = re.match(r'(?i)qachannels - \d - readout - integration - weights - \d - wave', k)
+        # if r:
+        #     b = deepcopy(v)
+        #     b['label'] = str(k) + ' - ' + 'SET'
+        #     b['datatype'] = 'PATH'
+        #     b['permission'] = 'WRITE'
+        #     config_2.append((b['label'], b))
 
-        r = re.match(r'(?i)qachannels - \d - spectroscopy - envelope - wave', k)
-        if r:
-            b = deepcopy(v)
-            b['label'] = str(k) + ' - ' + 'SET'
-            b['datatype'] = 'PATH'
-            b['permission'] = 'WRITE'
-            config_2.append((b['label'], b))
+        # r = re.match(r'(?i)qachannels - \d - spectroscopy - envelope - wave', k)
+        # if r:
+        #     b = deepcopy(v)
+        #     b['label'] = str(k) + ' - ' + 'SET'
+        #     b['datatype'] = 'PATH'
+        #     b['permission'] = 'WRITE'
+        #     config_2.append((b['label'], b))
     
     for item in config_2:
         config[item[0]] = item[1]
-    
-
     return config

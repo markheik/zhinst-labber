@@ -1,9 +1,11 @@
 import jinja2
 import black
 import autoflake
+from pathlib import Path
+import typing as t
 
 
-def generate_labber_device_driver_code(classname: str, settings_file: str) -> str:
+def generate_labber_device_driver_code(classname: str, settings_file: t.Union[Path, str]) -> str:
     data = {
         "class": {
             'name': classname
