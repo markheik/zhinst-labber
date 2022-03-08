@@ -11,23 +11,24 @@ IGNORED_FUNCTIONS = [
     BaseInstrument.set_transaction
 ]
 
+# Ignore everything by replacing 'N' to channels:
+# Example: '/STATS/N/PHYSICAL/VOLTAGES/N'
 _IGNORED_NODES = {
     'AWG': [
         '/ELF/'
     ],
-    'SHFQA4': [
-        '/STATS/PHYSICAL/VOLTAGES/N',
-        '/STATS/PHYSICAL/CURRENTS/N'
-    ]
-    
+    'SHFQA4': []
 }
 
-
+# Example:
+# _REPLACED_NODES = {
+#     '/EXAMPLE/N/NODE/VALUE': {
+#         'DATATYPE': 'PATH',
+#         'UNIT': 'AMPLITUDE'
+#     }
+# }
 _REPLACED_NODES = {
-    '/EXAMPLE/N/NODE/VALUE': {
-        'DATATYPE': 'PATH',
-        'UNIT': 'AMPLITUDE'
-    }
+    '': {}
 }
 
 
