@@ -48,7 +48,7 @@ def cli_generator(filepath: str, device: str, server_host: str, server_port: int
     # Device
     config = configparser.ConfigParser()
     general_settings_device(device=dev, config=config)
-    config = to_config(dev, config, IGNORED_FUNCTIONS)
+    config = to_config(dev, config, IGNORED_FUNCTIONS, IGNORED_NODES[dev._device_type.upper()])
     dev_dir = root_path / f'Zurich_Instruments_{dev.device_type.upper()}'
     dev_dir.mkdir(exist_ok=True)
     with open(f'{dev_dir}/Zurich_Instruments_{dev.device_type.upper()}.ini', "w", encoding='utf-8') as config_file:

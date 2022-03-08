@@ -7,23 +7,26 @@ from .node_section import NodeSection
 from .function_section import functions_to_config
 from .helpers import tooltip
 from zhinst.toolkit.nodetree import Node
+from zhinst.labber.generator.node_section import replace_node_ch_n
 
 
 def nodes_to_dict(node: Node) -> t.Dict:
     return {k[0]: k[1] for k in node}
 
 def node_in_ignored(node: str, ignored: t.List[str]) -> bool:
-    if ignored:
-        for ignored_node in ignored:
-            if ignored_node in node.lower():
-                return True
-        return False
+    path = _delete_root_node(node)
+    path = '/' + path if not path.startswith('/') else path
+    if replace_node_ch_n(path.upper()) in ignored:
+        return True
     return False
+
+def _delete_root_node(path: str) -> str:
+    return re.sub(r"/DEV(\d+)", "", path)[1:]
 
 def to_config(
     root_node: Node, 
     config: configparser.ConfigParser, 
-    ignored_funcs: t.List[str] = [],
+    ignored_funcs: t.List[t.Any] = [],
     ignored_nodes: t.List[str] = []
     ) -> configparser.ConfigParser:
     for node, info in root_node:
@@ -42,19 +45,9 @@ def to_config(
     # functions no return --> checkbox
     # functions return --> get from device
 
-    # Find better solutions for this
-    # Replace, extend, ignore
-
 
     for k, v in config.items():
         ...
-        # if ('LOAD_SEQUENCER_PROGRAM - SEQUENCER_PROGRAM') in k:
-        #     v['DATATYPE'] = 'PATH'
-        # elif ('WRITE_TO_WAVEFORM_MEMORY - WAVEFORMS') in k:
-        #     v['DATATYPE'] = 'PATH'
-        # elif ('WRITE_TO_WAVEFORM_MEMORY - INDEXES') in k:
-        #     v['DATATYPE'] = 'STRING'
-        #     v['TOOLTIP'] = tooltip('Indexes separated by comma.')
 
         # Find better solutions for this
         # r = re.match(r'(?i)qachannels - \d - generator - waveforms - \d - wave', k)

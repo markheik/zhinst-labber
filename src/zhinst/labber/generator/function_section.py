@@ -35,7 +35,7 @@ class FunctionParser:
         self._function_generator(obj, 'DEVICE')
         return self._functions
 
-    def _function_generator(self, obj, parent):
+    def _function_generator(self, obj, parent: str) -> None:
         if obj in self.ignores:
             return
         for name, attr in vars(obj).items():

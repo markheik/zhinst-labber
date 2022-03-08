@@ -10,17 +10,15 @@ IGNORED_FUNCTIONS = [
     BaseInstrument.get_as_event,
     BaseInstrument.set_transaction
 ]
-#     'MFLI': [
-#         'check_compatibility',
-#         'get_streamingnodes',
-#         'set_transaction'
-#     ]
-# ]
 
 _IGNORED_NODES = {
     'AWG': [
-        '/elf/'
+        '/ELF/'
+    ],
+    'SHFQA4': [
+        '/STATS/PHYSICAL/VOLTAGES/N'
     ]
+    
 }
 
 
@@ -41,5 +39,4 @@ REPLACED_FUNCTIONS = {
 }
 
 REPLACED_NODES = defaultdict(dict, **_REPLACED_NODES)
-# IGNORED_FUNCTIONS = defaultdict(list, **_IGNORED_FUNCTIONS)
 IGNORED_NODES = defaultdict(list, **_IGNORED_NODES)
