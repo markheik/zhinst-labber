@@ -20,10 +20,11 @@ def node_in_ignored(node: str, ignored: t.List[str]) -> bool:
 
 def dict_to_config(config, data):
     for title, items in data.items():
-        config.add_section(title)
+        config.add_section(title.title())
         for name, value in items.items():
-            config.set(title, name, value)
+            config.set(title.title(), name.title(), value.title())
     return config
+
 
 def to_config(
     root_node: Node, 

@@ -1,1 +1,2 @@
 recursive-include src/ *.json
+recursive-include src/ *.py.j2

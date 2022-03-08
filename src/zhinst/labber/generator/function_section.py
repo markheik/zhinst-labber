@@ -25,12 +25,8 @@ class FunctionParser:
     def __init__(self, nodes: t.Dict, ignores: t.List[str]):
         self.nodes = nodes
         self.ignores = ignores
-        self.path = ''
-        self.root_path = ''
         self._functions = []
-        self.rooot = ''
-        self.idx_root = ''
-        self.bar = 'DEVICE'
+        self.root = 'DEVICE'
 
     def get_functions(self, obj: object) -> t.List[t.Dict[str, str]]:
         self._function_generator(obj, 'DEVICE')
@@ -46,18 +42,19 @@ class FunctionParser:
                 continue
             if isinstance(attr, property):
                 th = t.get_type_hints(attr.fget)
-                if "typing.Union" in str(th["return"]) or "typing.Sequence" in str(th["return"]):
+                cls_ = th["return"]
+                if "typing.Union" in str(cls_) or "typing.Sequence" in str(cls_):
                     for k in node_indexes(self.nodes, [name]):
-                        self.bar = labber_delimiter(name, k)
-                        self._function_generator(th['return'].__args__[0], self.bar)
-                elif inspect.isclass(th["return"]):
-                    if issubclass(th["return"], Node):
-                        self._function_generator(th['return'], labber_delimiter(self.bar, name))
+                        self.root = labber_delimiter(name, k)
+                        self._function_generator(cls_.__args__[0], self.root)
+                elif inspect.isclass(cls_):
+                    if issubclass(cls_, Node):
+                        self._function_generator(cls_, labber_delimiter(self.root, name))
                     else:
                         continue
             else:
                 d = {
-                    'section': self.bar,
+                    'section': self.root,
                     'title': labber_delimiter(parent, name),
                     'name': name,
                     'obj': attr
@@ -82,7 +79,7 @@ def function_to_group(obj, section: str) -> t.List[t.Dict]:
         else:
             item['datatype'] = to_labber_format(type(v.default))
         item['group'] = labber_delimiter(section.upper(), group.upper())
-        item['section'] = section.upper() if section else 'DEVICE'
+        item['section'] = section.upper()
         if v.default != inspect._empty:
             if 'enum' in str(type(v.default)):
                 item['def_value'] = str(v.default.name)
@@ -126,17 +123,21 @@ def function_to_group(obj, section: str) -> t.List[t.Dict]:
     else:
         dt = 'BOOLEAN'
         permission = 'WRITE'
-    label = 'EXECUTEFUNC' if dt != 'PATH' else 'csv'
-    items.append(
-        {
-            'label': label, 
-            'datatype': dt, 
-            'permission': permission,
-            'group': labber_delimiter(section.upper(), group.upper()),
-            'section': section.upper() if section else 'DEVICE',
-            'tooltip': tooltip(docstring.short_description),
-        }
-    )
+
+    d = {
+        'label': 'EXECUTEFUNC', 
+        'datatype': dt, 
+        'permission': permission,
+        'group': labber_delimiter(section.upper(), group.upper()),
+        'section': section.upper() if section else 'DEVICE',
+        'tooltip': tooltip(docstring.short_description),
+    }
+    if permission == 'READ' and dt == 'PATH':
+        d['get_cmd'] = 'csv'
+    else:
+        d['set_cmd'] = labber_delimiter(section.upper(), group.upper())
+
+    items.append(d)
     return items
 
 

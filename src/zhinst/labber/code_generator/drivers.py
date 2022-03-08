@@ -13,9 +13,11 @@ def generate_labber_device_driver_code(classname: str, settings_file: t.Union[Pa
         'settings_file': settings_file
     }
 
-    templateLoader = jinja2.FileSystemLoader(searchpath='')
+    fp = Path(__file__).parent / "templates"
+    templateLoader = jinja2.FileSystemLoader(searchpath=fp)
     templateEnv = jinja2.Environment(loader=templateLoader)
-    template = templateEnv.get_template("templates/device_template.py.j2")
+    fp = Path(__file__).parent / "templates" / "device_template.py.j2"
+    template = templateEnv.get_template("device_template.py.j2")
     result = template.render(data)
     result = black.format_str(result, mode=black.FileMode())
     result = autoflake.fix_code(result, remove_all_unused_imports=True)

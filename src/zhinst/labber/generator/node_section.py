@@ -1,7 +1,8 @@
-import configparser
 import typing as t
+import fnmatch
+
 from . import helpers
-from .replaces_nodes import REPLACED_NODES
+from .replaces_nodes import REPLACED_NODES, NODE_SECTIONS, NODE_GROUPS
 
 
 def replace_node_ch_n(node: str) -> str:
@@ -20,17 +21,6 @@ class NodeSection:
         self._node_path = helpers.delete_device_from_node_path(node["Node"].upper())
         self._node_path = self._node_path.removeprefix('/')
         self._properties = self.node["Properties"].lower()
-
-    # def replacer(key):
-    #     def replacer(func):
-    #         @wraps(func)
-    #         def wraps_(self, *args, **kwargs):
-    #             try:
-    #                 return self.replaced[self._node_path][key]
-    #             except KeyError:
-    #                 return func(self, *args, **kwargs)
-    #         return wraps_
-    #     return replacer
 
     @property
     def permission(self) -> str:
@@ -104,7 +94,6 @@ class NodeSection:
         # Remove degree signs etc.
         return unit.encode("ascii", "ignore").decode()
 
-    # @replacer("datatype")
     @property
     def datatype(self) -> t.Optional[str]:
         unit = self.node["Type"]
@@ -168,30 +157,16 @@ class NodeSection:
         path = '/' + self._node_path if not self._node_path.startswith('/') else self._node_path
         r = REPLACED_NODES.get(replace_node_ch_n(path), {})
         d.update(r)
+        for k, v in NODE_SECTIONS.items():
+            r = fnmatch.filter(['/' + self._node_path.upper()], f'{k}*')
+            if r:
+                d['section'] = v
+                break
+
+        for k, v in NODE_GROUPS.items():
+            r = fnmatch.filter(['/' + self._node_path.upper()], f'{k}*')
+            if r:
+                d['group'] = v
+                break
+
         return {self.label: d}
-
-    # def to_config(self, config: configparser.ConfigParser) -> None:
-    #     config.add_section(self.label)
-    #     for k, v in self.as_dict().items():
-    #         config.set(self.label, k, v)
-
-        # config.add_section(sec_name)
-        # config.set(sec_name, "section", self.section)
-        # config.set(sec_name, "group", self.group)
-        # config.set(sec_name, "label", self.label)
-        # config.set(sec_name, "datatype", self.datatype) if self.datatype else ...
-        # config.set(sec_name, "unit", self.unit) if self.unit else ...
-        # config.set(sec_name, "tooltip", self.tooltip)
-
-        # for item in self.combo_def:
-        #     for k, v in item.items():
-        #         config.set(sec_name, k, v)
-
-        # config.set(
-        #     sec_name, "permission", self.permission
-        # ) if self.permission else ...
-        # config.set(sec_name, "set_cmd", self.set_cmd) if self.set_cmd else ...
-        # config.set(sec_name, "get_cmd", self.get_cmd) if self.get_cmd else ...
-        # config.set(
-        #     sec_name, "show_in_measurement_dlg", self.show_in_measurement_dlg
-        # ) if self.show_in_measurement_dlg else ...

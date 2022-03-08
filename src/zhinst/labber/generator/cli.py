@@ -12,7 +12,7 @@ from zhinst.labber.generator.general_settings import (
     general_settings_device,
     general_settings_dataserver
 )
-from zhinst.labber.generator.code_generator import generate_labber_device_driver_code
+from zhinst.labber.code_generator.drivers import generate_labber_device_driver_code
 from zhinst.labber.generator.replaces_nodes import IGNORED_FUNCTIONS, IGNORED_NODES
 
 
