@@ -1,7 +1,5 @@
 import configparser
 import typing as t
-import re
-from functools import wraps
 from . import helpers
 from .replaces_nodes import REPLACED_NODES
 
@@ -19,11 +17,9 @@ class NodeSection:
     def __init__(self, node: t.Dict):
         self.node = node
         self.node.setdefault("Options", {})
-        self._node_path = self._delete_root_node(node["Node"].upper())
+        self._node_path = helpers.delete_device_from_node_path(node["Node"].upper())
+        self._node_path = self._node_path.removeprefix('/')
         self._properties = self.node["Properties"].lower()
-
-    def _delete_root_node(self, path: str) -> str:
-        return re.sub(r"/DEV(\d+)", "", path)[1:]
 
     # def replacer(key):
     #     def replacer(func):

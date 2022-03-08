@@ -16,7 +16,8 @@ _IGNORED_NODES = {
         '/ELF/'
     ],
     'SHFQA4': [
-        '/STATS/PHYSICAL/VOLTAGES/N'
+        '/STATS/PHYSICAL/VOLTAGES/N',
+        '/STATS/PHYSICAL/CURRENTS/N'
     ]
     
 }

@@ -1,27 +1,21 @@
 import configparser
 import re
 import typing as t
-from copy import deepcopy
 
 from .node_section import NodeSection
 from .function_section import functions_to_config
-from .helpers import tooltip
 from zhinst.toolkit.nodetree import Node
 from zhinst.labber.generator.node_section import replace_node_ch_n
-
+from zhinst.labber.generator.helpers import delete_device_from_node_path
 
 def nodes_to_dict(node: Node) -> t.Dict:
     return {k[0]: k[1] for k in node}
 
 def node_in_ignored(node: str, ignored: t.List[str]) -> bool:
-    path = _delete_root_node(node)
-    path = '/' + path if not path.startswith('/') else path
+    path = delete_device_from_node_path(node)
     if replace_node_ch_n(path.upper()) in ignored:
         return True
     return False
-
-def _delete_root_node(path: str) -> str:
-    return re.sub(r"/DEV(\d+)", "", path)[1:]
 
 def to_config(
     root_node: Node, 
@@ -44,7 +38,6 @@ def to_config(
     # filetype to section when PATH set_cmd, get_cmd
     # functions no return --> checkbox
     # functions return --> get from device
-
 
     for k, v in config.items():
         ...

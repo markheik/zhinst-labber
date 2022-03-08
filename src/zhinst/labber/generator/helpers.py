@@ -1,4 +1,5 @@
 import typing as t
+import re
 
 from zhinst.toolkit.nodetree import Node
 
@@ -57,3 +58,6 @@ def tooltip(desc, node = None, enum = None) -> str:
     enum = f'<p>{_to_html_list(enum)}</p>' if enum else ''
     node_path = f'<p><b>{node.strip()}</b></p>' if node else ''
     return '<html><body>' + desc + enum + node_path + '</body></html>'
+
+def delete_device_from_node_path(path: str) -> str:
+    return re.sub(r"/DEV(\d+)", "", path)[0:]

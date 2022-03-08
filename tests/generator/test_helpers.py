@@ -30,3 +30,11 @@ def test_labber_delimiter():
     
     s = helpers.labber_delimiter('')
     assert s == ''
+
+
+def test_delete_device_from_node_path():
+    r = helpers.delete_device_from_node_path('/DEV123/FOO/0/BAR')
+    assert r == '/FOO/0/BAR'
+
+    r = helpers.delete_device_from_node_path('/FOO/0/BAR')
+    assert r == '/FOO/0/BAR'
