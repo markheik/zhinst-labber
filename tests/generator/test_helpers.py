@@ -1,7 +1,7 @@
 import typing as t
 
 from zhinst.labber.generator import helpers
-
+from zhinst.labber.generator import LABBER_DELIMITER_VALUE
 
 def test_enum_description():
     assert helpers.enum_description('tester: This tests.') == ('tester', 'This tests.')
@@ -21,7 +21,7 @@ def test_to_labber_format():
 
 
 def test_labber_delimiter():
-    delim = helpers.LABBER_DELIMITER_VALUE
+    delim = LABBER_DELIMITER_VALUE
     s = helpers.labber_delimiter('bar', '1', 'foo')
     assert s == 'BAR' + delim + '1' + delim + 'FOO'
 

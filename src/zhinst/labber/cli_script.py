@@ -1,11 +1,11 @@
 import click
-from zhinst.labber.generator.cli import cli_generator
+from zhinst.labber.generator.generator import generate_labber_files
 
 
 @click.group()
 def main():
     """Fancy zhinst-labber cli script"""
-    generate_drivers()
+    pass
 
 @main.command()
 @click.argument(
@@ -33,7 +33,7 @@ def main():
     required=False,
     type=bool,
 )
-def generate_drivers(filepath, device, server_host, server_port, hf2):
+def makeconfig(filepath, device, server_host, server_port, hf2):
     """Generate drivers.
     
     FILEPATH Filepath where the files are saved.
@@ -42,7 +42,7 @@ def generate_drivers(filepath, device, server_host, server_port, hf2):
 
     SERVER_HOST: Server host (e.g: localhost)
     """
-    cli_generator(
+    generate_labber_files(
         filepath=filepath,
         device=device,
         server_host=server_host,

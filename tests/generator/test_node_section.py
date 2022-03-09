@@ -30,10 +30,10 @@ def test_node_section_no_enum():
         'QACHANNELS - 0 - CENTERFREQ': {
             "datatype": "DOUBLE",
             "get_cmd": "QACHANNELS/0/CENTERFREQ",
-            "group": "QACHANNELS",
+            "group": "QA Channel 0",
             "label": "QACHANNELS - 0 - CENTERFREQ",
             "permission": "BOTH",
-            "section": "QACHANNELS - 0",
+            "section": "QA Setup",
             "set_cmd": "QACHANNELS/0/CENTERFREQ",
             "tooltip": "<html><body><p>The Center Frequency of the analysis "
             "band.</p><p><b>QACHANNELS/0/CENTERFREQ</b></p></body></html>",
@@ -45,27 +45,27 @@ def test_node_section_no_enum():
 def test_node_section_enum():
     obj = NodeSection(node_dict_enum)
     assert obj.as_dict() == {
-        "QACHANNELS - 0 - OUTPUT - FILTER": {
-            "datatype": "DOUBLE",
-            "get_cmd": "QACHANNELS/0/OUTPUT/FILTER",
-            "group": "QACHANNELS - OUTPUT",
-            "label": "QACHANNELS - 0 - OUTPUT - FILTER",
-            "permission": "READ",
-            "section": "QACHANNELS - 0",
-            "tooltip": "<html><body><p>Reads the selected analog filter before the Signal "
-            "Output.</p><p><ul><li>lowpass_1500: Low-pass filter of 1.5 "
-            "GHz.</li><li>lowpass_3000: Low-pass filter of 3 "
-            "GHz.</li><li>bandpass_3000_6000: Band-pass filter between 3 GHz - "
-            "6 GHz</li><li>bandpass_6000_10000: Band-pass filter between 6 GHz "
-            "- 10 "
-            "GHz</li></ul></p><p><b>QACHANNELS/0/OUTPUT/FILTER</b></p></body></html>",
+            "QACHANNELS - 0 - OUTPUT - FILTER": {
+                "datatype": "DOUBLE",
+                "get_cmd": "QACHANNELS/0/OUTPUT/FILTER",
+                "group": "QA Channel 0",
+                "label": "QACHANNELS - 0 - OUTPUT - FILTER",
+                "permission": "READ",
+                "section": "QA Setup",
+                "tooltip": "<html><body><p>Reads the selected analog filter before the Signal "
+                "Output.</p><p><ul><li>lowpass_1500: Low-pass filter of 1.5 "
+                "GHz.</li><li>lowpass_3000: Low-pass filter of 3 "
+                "GHz.</li><li>bandpass_3000_6000: Band-pass filter between 3 GHz - "
+                "6 GHz</li><li>bandpass_6000_10000: Band-pass filter between 6 GHz "
+                "- 10 "
+                "GHz</li></ul></p><p><b>QACHANNELS/0/OUTPUT/FILTER</b></p></body></html>",
+            }
         }
-    }
 
 
 def test_replace_node_ch_n():
     r = replace_node_ch_n('STATS/PHYSICAL/VOLTAGES/0')
-    assert r == 'STATS/PHYSICAL/VOLTAGES/N'
+    assert r == 'STATS/PHYSICAL/VOLTAGES/*'
     
     r = replace_node_ch_n('/STATS/0/PHYSICAL/1/VOLTAGES/0')
-    assert r == '/STATS/N/PHYSICAL/N/VOLTAGES/N'
+    assert r == '/STATS/*/PHYSICAL/*/VOLTAGES/*'

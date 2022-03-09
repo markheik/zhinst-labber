@@ -14,37 +14,41 @@ from zhinst.toolkit.driver.nodes.generator import Generator as ZIGen
 
 
 def test_function_to_group_func_replace():
-    r = function_section.function_to_group(ZIGen.load_sequencer_program, "t")
-    assert r == [
-        {
-            "datatype": "PATH",
-            "group": "T - LOAD_SEQUENCER_PROGRAM",
-            "label": "SEQUENCER_PROGRAM",
-            "permission": "WRITE",
-            "section": "T",
-            "tooltip": "<html><body><p>Sequencer program to be "
-            "uploaded</p></body></html>",
-        },
-        {
-            "datatype": "DOUBLE",
-            "def_value": "10",
-            "group": "T - LOAD_SEQUENCER_PROGRAM",
-            "label": "TIMEOUT",
-            "permission": "WRITE",
-            "section": "T",
-            "tooltip": "<html><body><p>Maximum time to wait for the compilation on the "
-            "device in seconds. (default = 10s)</p></body></html>",
-        },
-        {
+    r = function_section.function_to_group(
+        ZIGen.load_sequencer_program, "section", "title"
+    )
+    assert r == {
+        "TITLE - EXECUTEFUNC": {
             "datatype": "BOOLEAN",
-            "group": "T - LOAD_SEQUENCER_PROGRAM",
+            "group": "SECTION - LOAD_SEQUENCER_PROGRAM",
             "label": "EXECUTEFUNC",
             "permission": "WRITE",
-            "section": "T",
-            "tooltip": "<html><body><p>Compiles and loads a sequencer "
-            "program.</p></body></html>",
+            "section": "SECTION",
+            "set_cmd": "SECTION - LOAD_SEQUENCER_PROGRAM",
+            "tooltip": "<html><body><p>Compiles and loads a "
+            "sequencer program.</p></body></html>",
         },
-    ]
+        "TITLE - SEQUENCER_PROGRAM": {
+            "datatype": "PATH",
+            "group": "SECTION - LOAD_SEQUENCER_PROGRAM",
+            "label": "SEQUENCER_PROGRAM",
+            "permission": "WRITE",
+            "section": "SECTION",
+            "tooltip": "<html><body><p>Sequencer program to "
+            "be uploaded</p></body></html>",
+        },
+        "TITLE - TIMEOUT": {
+            "datatype": "DOUBLE",
+            "def_value": "10",
+            "group": "SECTION - LOAD_SEQUENCER_PROGRAM",
+            "label": "TIMEOUT",
+            "permission": "WRITE",
+            "section": "SECTION",
+            "tooltip": "<html><body><p>Maximum time to wait for the "
+            "compilation on the device in seconds. "
+            "(default = 10s)</p></body></html>",
+        },
+    }
 
 
 def func_no_args():
@@ -76,70 +80,73 @@ def func_args(enum: EnumInp, foobar: str, bar=1, foo="asd", *args, **kwargs) -> 
 
 
 def test_function_to_group_func_no_args():
-    r = function_section.function_to_group(func_no_args, "t")
-    assert r == [
-        {
+    r = function_section.function_to_group(func_no_args, "section", "title")
+    assert r == {
+        "TITLE - EXECUTEFUNC": {
             "datatype": "BOOLEAN",
-            "group": "T - FUNC_NO_ARGS",
+            "group": "SECTION - FUNC_NO_ARGS",
             "label": "EXECUTEFUNC",
             "permission": "WRITE",
-            "section": "T",
+            "section": "SECTION",
+            "set_cmd": "SECTION - FUNC_NO_ARGS",
             "tooltip": "<html><body><p></p></body></html>",
-        },
-    ]
+        }
+    }
 
 
 def test_function_to_group_func_args():
-    r = function_section.function_to_group(func_args, "t")
-    assert r == [
-        {
+    r = function_section.function_to_group(func_args, "section", "title")
+    assert r == {
+        "TITLE - BAR": {
+            "datatype": "DOUBLE",
+            "def_value": "1",
+            "group": "SECTION - FUNC_ARGS",
+            "label": "BAR",
+            "permission": "WRITE",
+            "section": "SECTION",
+            "tooltip": "<html><body><p>Barz</p></body></html>",
+        },
+        "TITLE - ENUM": {
             "cmd_def_1": "1",
             "cmd_def_2": "BAR123",
             "combo_def_1": "foo",
             "combo_def_2": "bar",
             "datatype": "COMBO",
-            "group": "T - FUNC_ARGS",
+            "group": "SECTION - FUNC_ARGS",
             "label": "ENUM",
             "permission": "WRITE",
-            "section": "T",
-            "tooltip": "<html><body><p>An enumerator.</p><p><ul><li>foo: 1</li><li>bar: "
+            "section": "SECTION",
+            "tooltip": "<html><body><p>An enumerator.</p><p><ul><li>foo: "
+            "1</li><li>bar: "
             "BAR123</li></ul></p></body></html>",
         },
-        {
-            "datatype": "STRING",
-            "group": "T - FUNC_ARGS",
-            "label": "FOOBAR",
-            "permission": "WRITE",
-            "section": "T",
-            "tooltip": "<html><body><p>Foop Foop is a here</p></body></html>",
+        "TITLE - EXECUTEFUNC": {
+            "datatype": "PATH",
+            "get_cmd": "csv",
+            "group": "SECTION - FUNC_ARGS",
+            "label": "EXECUTEFUNC",
+            "permission": "READ",
+            "section": "SECTION",
+            "tooltip": "<html><body><p>This is a test " "function.</p></body></html>",
         },
-        {
-            "datatype": "DOUBLE",
-            "def_value": "1",
-            "group": "T - FUNC_ARGS",
-            "label": "BAR",
-            "permission": "WRITE",
-            "section": "T",
-            "tooltip": "<html><body><p>Barz</p></body></html>",
-        },
-        {
+        "TITLE - FOO": {
             "datatype": "STRING",
             "def_value": "asd",
-            "group": "T - FUNC_ARGS",
+            "group": "SECTION - FUNC_ARGS",
             "label": "FOO",
             "permission": "WRITE",
-            "section": "T",
+            "section": "SECTION",
             "tooltip": "<html><body><p>Does this.</p></body></html>",
         },
-        {
-            "datatype": "PATH",
-            "group": "T - FUNC_ARGS",
-            "label": "csv",
-            "permission": "READ",
-            "section": "T",
-            "tooltip": "<html><body><p>This is a test function.</p></body></html>",
+        "TITLE - FOOBAR": {
+            "datatype": "STRING",
+            "group": "SECTION - FUNC_ARGS",
+            "label": "FOOBAR",
+            "permission": "WRITE",
+            "section": "SECTION",
+            "tooltip": "<html><body><p>Foop Foop is a " "here</p></body></html>",
         },
-    ]
+    }
 
 
 def test_node_indexes():
@@ -282,22 +289,25 @@ def test_functions_to_config():
             "label": "EXECUTEFUNC",
             "permission": "WRITE",
             "section": "AWG - 0",
+            "set_cmd": "AWG - 0 - COOL_FUNCTION",
             "tooltip": "<html><body><p></p></body></html>",
         },
         "AWG - 0 - GENERATOR - GEN_FUNC - EXECUTEFUNC": {
             "datatype": "BOOLEAN",
-            "group": "AWG - 0 - " "GENERATOR - " "GEN_FUNC",
+            "group": "AWG - 0 - GEN_FUNC",
             "label": "EXECUTEFUNC",
             "permission": "WRITE",
             "section": "AWG - 0",
+            "set_cmd": "AWG - 0 - " "GEN_FUNC",
             "tooltip": "<html><body><p></p></body></html>",
         },
         "AWG - 1 - CHS - COOL_FUNCTION2 - EXECUTEFUNC": {
             "datatype": "BOOLEAN",
-            "group": "AWG - 1 - CHS - " "COOL_FUNCTION2",
+            "group": "AWG - 1 - " "COOL_FUNCTION2",
             "label": "EXECUTEFUNC",
             "permission": "WRITE",
             "section": "AWG - 1",
+            "set_cmd": "AWG - 1 - " "COOL_FUNCTION2",
             "tooltip": "<html><body><p></p></body></html>",
         },
         "AWG - 1 - COOL_FUNCTION - EXECUTEFUNC": {
@@ -306,14 +316,16 @@ def test_functions_to_config():
             "label": "EXECUTEFUNC",
             "permission": "WRITE",
             "section": "AWG - 1",
+            "set_cmd": "AWG - 1 - COOL_FUNCTION",
             "tooltip": "<html><body><p></p></body></html>",
         },
         "AWG - 1 - GENERATOR - GEN_FUNC - EXECUTEFUNC": {
             "datatype": "BOOLEAN",
-            "group": "AWG - 1 - " "GENERATOR - " "GEN_FUNC",
+            "group": "AWG - 1 - GEN_FUNC",
             "label": "EXECUTEFUNC",
             "permission": "WRITE",
             "section": "AWG - 1",
+            "set_cmd": "AWG - 1 - " "GEN_FUNC",
             "tooltip": "<html><body><p></p></body></html>",
         },
         "DEVICE - ACTIVATE - EXECUTEFUNC": {
@@ -322,6 +334,7 @@ def test_functions_to_config():
             "label": "EXECUTEFUNC",
             "permission": "WRITE",
             "section": "DEVICE",
+            "set_cmd": "DEVICE - ACTIVATE",
             "tooltip": "<html><body><p></p></body></html>",
         },
     }

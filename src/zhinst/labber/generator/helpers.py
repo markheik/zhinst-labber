@@ -2,9 +2,7 @@ import typing as t
 import re
 
 from zhinst.toolkit.nodetree import Node
-
-
-LABBER_DELIMITER_VALUE = ' - '
+from zhinst.labber.generator import LABBER_DELIMITER_VALUE
 
 
 def enum_description(value: str) -> t.Tuple[str, str]:

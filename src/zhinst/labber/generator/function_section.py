@@ -1,10 +1,11 @@
+from copy import deepcopy
 import inspect
 from docstring_parser import parse
 import typing as t
 
 from zhinst.toolkit.nodetree import Node
 from .helpers import labber_delimiter, to_labber_format, tooltip
-from .replaces_nodes import REPLACED_FUNCTIONS
+from .conf import REPLACED_FUNCTIONS
 
 
 def node_indexes(nodes: t.Dict[Node, dict], target: t.List[str]) -> t.List[str]:
@@ -50,8 +51,6 @@ class FunctionParser:
                 elif inspect.isclass(cls_):
                     if issubclass(cls_, Node):
                         self._function_generator(cls_, labber_delimiter(self.root, name))
-                    else:
-                        continue
             else:
                 d = {
                     'section': self.root,
@@ -61,9 +60,9 @@ class FunctionParser:
                 }
                 self._functions.append(d)
 
-def function_to_group(obj, section: str) -> t.List[t.Dict]:
+def function_to_group(obj, section: str, title: str) -> t.Dict:
     """Native Python function."""
-    items = []
+    items = {}
     group = obj.__name__
     signature = inspect.signature(obj)
     docstring = parse(obj.__doc__)
@@ -78,7 +77,7 @@ def function_to_group(obj, section: str) -> t.List[t.Dict]:
             item['datatype'] = to_labber_format(v.annotation)
         else:
             item['datatype'] = to_labber_format(type(v.default))
-        item['group'] = labber_delimiter(section.upper(), group.upper())
+        item['group'] = title# labber_delimiter(section.upper(), group.upper())
         item['section'] = section.upper()
         if v.default != inspect._empty:
             if 'enum' in str(type(v.default)):
@@ -106,7 +105,7 @@ def function_to_group(obj, section: str) -> t.List[t.Dict]:
             item.update(s)
         except KeyError:
             ...
-        items.append(item)
+        items[labber_delimiter(title, item['label'])] = item
 
     if return_type != inspect._empty and return_type is not None:
         permission = 'READ'
@@ -119,25 +118,37 @@ def function_to_group(obj, section: str) -> t.List[t.Dict]:
         if isinstance(return_type, str):
             dt = 'STRING'
         else:
-            dt = 'PATH'
+            dt = 'STRING'
     else:
         dt = 'BOOLEAN'
         permission = 'WRITE'
 
     d = {
-        'label': 'EXECUTEFUNC', 
+        'label': 'Executefunc', 
         'datatype': dt, 
         'permission': permission,
-        'group': labber_delimiter(section.upper(), group.upper()),
+        'group': title, #labber_delimiter(section.upper(), group.upper()),
         'section': section.upper() if section else 'DEVICE',
         'tooltip': tooltip(docstring.short_description),
     }
-    if permission == 'READ' and dt == 'PATH':
-        d['get_cmd'] = 'csv'
+    if permission == 'WRITE' and dt == 'PATH':
+        d['set_cmd'] = '.csv'
     else:
-        d['set_cmd'] = labber_delimiter(section.upper(), group.upper())
-
-    items.append(d)
+        d['get_cmd'] = labber_delimiter(section.upper(), group.upper())
+    try:
+        s = REPLACED_FUNCTIONS[obj][d['label']]
+        d.update(s)
+    except KeyError:
+        ...
+    items[labber_delimiter(title, d['label'])] = d
+    try:
+        for k, v in deepcopy(REPLACED_FUNCTIONS[obj]).items():
+            if k not in items.keys():
+                title_ = labber_delimiter(title, v['label'])
+                v['group'] = title
+                items[title_] = v
+    except KeyError:
+        ...
     return items
 
 
@@ -145,8 +156,5 @@ def functions_to_config(class_: object, nodes: t.Dict[Node, t.Dict], ignores: t.
     o = FunctionParser(nodes=nodes, ignores=ignores)
     fs = {}
     for item in o.get_functions(class_):
-        for func in function_to_group(item['obj'], item['section']):
-            section = labber_delimiter(item['title'], func['label'])
-            func['group'] = item['title']
-            fs[section] = func
+        fs.update(function_to_group(item['obj'], item['section'], item['title']))
     return fs

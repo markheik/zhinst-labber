@@ -1,5 +1,4 @@
 import typing as t
-import configparser
 from .helpers import tooltip
 
 
@@ -38,15 +37,16 @@ class CustomLabel:
             self._tt_enums.append(f'{c[1]}: {c[2]}')
         return d
 
-    def to_config(self, config: configparser.ConfigParser):
-        config.add_section(self._name)
-        config.set(self._name, 'group', self._group)
-        config.set(self._name, 'section', self._section)
+    def to_config(self):
+        d = {
+            'group': self._group,
+            'section': self._section
+        }
         for k, v in self._items.items():
-            config.set(self._name, k, v)
-
+            d[k] = v
         for idx,c in enumerate(self._combos, 1):
-            config.set(self._name, f'cmd_def{idx}', c[0])
-            config.set(self._name, f'combo_def{idx}', c[1])
+            d[f'cmd_def{idx}'] = c[0]
+            d[f'combo_def{idx}'] = c[1]
             self._tt_enums.append(f'{c[1]}: {c[2]}')
-        config.set(self._name, 'tooltip', tooltip(self._tt_desc, self._tt_node, self._tt_enums))
+        d['tooltip'] = tooltip(self._tt_desc, self._tt_node, self._tt_enums)
+        return {self._name: d}

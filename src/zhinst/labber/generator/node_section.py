@@ -2,14 +2,14 @@ import typing as t
 import fnmatch
 
 from . import helpers
-from .replaces_nodes import REPLACED_NODES, NODE_SECTIONS, NODE_GROUPS
+from .conf import REPLACED_NODES, NODE_SECTIONS, NODE_GROUPS
 
 
 def replace_node_ch_n(node: str) -> str:
     replaced = []
     for c in node.upper().split('/'):
         if c.isnumeric():
-            replaced.append('N')
+            replaced.append('*')
         else:
             replaced.append(c)
     return '/'.join(replaced)
@@ -19,8 +19,12 @@ class NodeSection:
         self.node = node
         self.node.setdefault("Options", {})
         self._node_path = helpers.delete_device_from_node_path(node["Node"].upper())
-        self._node_path = self._node_path.removeprefix('/')
+        self._node_path_no_prefix = self._node_path.removeprefix('/')
         self._properties = self.node["Properties"].lower()
+
+    @property
+    def filtered_node_path(self):
+        return self._node_path
 
     @property
     def permission(self) -> str:
@@ -39,7 +43,7 @@ class NodeSection:
 
     @property
     def section(self) -> str:
-        parsed = self._node_path.upper().split("/")
+        parsed = self._node_path_no_prefix.upper().split("/")
         for idx, x in enumerate(parsed, 1):
             if idx == 3:
                 break
@@ -49,7 +53,7 @@ class NodeSection:
 
     @property
     def group(self) -> str:
-        node_path = self._node_path
+        node_path = self._node_path_no_prefix
         path = [x for x in node_path.split("/") if not x.isnumeric()]
         if len(path) > 1:
             return helpers.labber_delimiter(*path[:-1])
@@ -57,7 +61,7 @@ class NodeSection:
 
     @property
     def label(self) -> str:
-        node_path = self._node_path
+        node_path = self._node_path_no_prefix
         path = node_path.split("/")
         return helpers.labber_delimiter(*path)
 
@@ -79,7 +83,7 @@ class NodeSection:
 
     @property
     def tooltip(self) -> str:
-        node_path = self._node_path.upper().upper()
+        node_path = self._node_path_no_prefix.upper()
         items = []
         for k, v in self.node["Options"].items():
             value, desc = helpers.enum_description(v)
@@ -125,12 +129,12 @@ class NodeSection:
     @property
     def set_cmd(self) -> t.Optional[str]:
         if "write" in self._properties:
-            return self._node_path
+            return self._node_path_no_prefix
 
     @property
     def get_cmd(self) -> t.Optional[str]:
         if "read" in self._properties:
-            return self._node_path
+            return self._node_path_no_prefix
 
     def as_dict(self) -> dict:
         d = {}
@@ -154,17 +158,17 @@ class NodeSection:
         if self.show_in_measurement_dlg:
             d['show_in_measurement_dlg'] = self.show_in_measurement_dlg
 
-        path = '/' + self._node_path if not self._node_path.startswith('/') else self._node_path
-        r = REPLACED_NODES.get(replace_node_ch_n(path), {})
+        # Overwrite Sections
+        r = REPLACED_NODES.get(replace_node_ch_n(self._node_path), {})
         d.update(r)
-        for k, v in NODE_SECTIONS.items():
-            r = fnmatch.filter(['/' + self._node_path.upper()], f'{k}*')
+        for k, v in NODE_SECTIONS['SHFQA'].items():
+            r = fnmatch.filter([self._node_path.upper()], f'{k}*')
             if r:
                 d['section'] = v
                 break
-
-        for k, v in NODE_GROUPS.items():
-            r = fnmatch.filter(['/' + self._node_path.upper()], f'{k}*')
+        # Overwrite groups
+        for k, v in NODE_GROUPS['SHFQA'].items():
+            r = fnmatch.filter([self._node_path.upper()], f'{k}*')
             if r:
                 d['group'] = v
                 break
