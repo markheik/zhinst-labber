@@ -5,11 +5,8 @@ from zhinst.toolkit.driver.devices.base import BaseInstrument
 from zhinst.toolkit.driver.devices.shfqa import SHFScope
 from zhinst.toolkit.driver.modules.shfqa_sweeper import SHFQASweeper
 from zhinst.toolkit.driver.nodes.readout import Readout
-from zhinst.labber.generator.custom_section import CustomLabel
+from zhinst.labber.generator.helpers import tooltip
 
-
-# # Delimiter between sections in GUI.
-# LABBER_DELIMITER_VALUE = ' - '
 
 IGNORED_FUNCTIONS = {
     'NORMAL': [],
@@ -106,6 +103,7 @@ NODE_GROUPS = {
     }
 }
 
+
 REPLACED_FUNCTIONS = {
     Generator.load_sequencer_program: {
         'sequencer_program': {
@@ -132,21 +130,25 @@ REPLACED_FUNCTIONS = {
         }
     },
     Generator.write_to_waveform_memory: {
+        'pulses': {},
         'Wave0': {
             'datatype': 'PATH',
             'set_cmd': '.csv',
-            'label': 'Wave0'
+            'label': 'Wave0',
+            'tooltip': tooltip('Waveform 0')
         },
         'Wave1': {
             'datatype': 'PATH',
             'set_cmd': '.csv',
-            'label': 'Wave1'
+            'label': 'Wave1',
+            'tooltip': tooltip('Waveform 1')
         },
-        'markers': {
+        'Markers': {
             'datatype': 'PATH',
             'set_cmd': '.csv',
-            'label': 'markers'
-        }
+            'label': 'Markers',
+            'tooltip': tooltip('Markers.')
+        },
     }
 }
 

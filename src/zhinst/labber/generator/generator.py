@@ -3,21 +3,17 @@ from copy import deepcopy
 import typing as t
 from pathlib import Path
 import json
+import fnmatch
 
 from zhinst.toolkit import Session
 from .node_section import NodeSection
 from .function_section import functions_to_config
 from zhinst.toolkit.nodetree import Node
-from zhinst.labber.generator.node_section import replace_node_ch_n
 from zhinst.labber.generator.helpers import delete_device_from_node_path
 from zhinst.labber.code_generator.drivers import generate_labber_device_driver_code
 from zhinst.labber.generator.conf import IGNORED_FUNCTIONS, IGNORED_NODES
-from zhinst.labber.generator.general_settings import (
-    general_settings_module,
-    general_settings_device,
-    general_settings_dataserver
-)
 from zhinst.labber.generator.custom_section import CustomLabel
+from .conf import NODE_SECTIONS
 
 
 def nodes_to_dict(node: Node) -> t.Dict:
@@ -44,10 +40,6 @@ def dict_to_config(config, data):
             else:
                 config.set(title.title(), name, value)
     return config
-
-import json
-from .conf import REPLACED_NODES, NODE_SECTIONS, NODE_GROUPS
-import fnmatch
 
 
 class LabberConfig:
@@ -145,11 +137,21 @@ class DeviceConfig(LabberConfig):
         sections = {}
         if 'SHFQA' in self.name:
             for res in range(4):
-                s = CustomLabel(f'Scopes - 0 - Read - Result {res}', 'Scopes', 'Scopes - 0 - Read')
-                s['label'] = f'Result {res}'
+                s = CustomLabel(f'SCOPES - 0 - READ - RESULT {res}', 'SCOPES', 'SCOPES - 0 - READ')
+                s['label'] = f'RESULT {res}'
                 s['datatype'] = 'VECTOR_COMPLEX'
                 s['show_in_measurement_dlg'] = 'True'
                 sections.update(s.to_config())
+            s = CustomLabel(f'SCOPES - 0 - CONFIGURE - TRIGGER_INPUT', 'SCOPES', 'SCOPES - 0 - CONFIGURE')
+            s['datatype'] = 'COMBO'
+            for _, enum in enumerate(self.device.scopes[0].available_trigger_inputs, 1):
+                s.add_enum(str(enum), str(enum))
+            sections.update(s.to_config())
+
+            s = CustomLabel(f'SCOPES - 0 - CONFIGURE - INPUT_SELECT', 'SCOPES', 'SCOPES - 0 - CONFIGURE')
+            for _, enum in enumerate(self.device.scopes[0].available_inputs, 1):
+                s.add_enum(enum, enum)
+            sections.update(s.to_config())
         return sections
 
     def settings(self):

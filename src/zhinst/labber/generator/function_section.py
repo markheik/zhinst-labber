@@ -77,7 +77,7 @@ def function_to_group(obj, section: str, title: str) -> t.Dict:
             item['datatype'] = to_labber_format(v.annotation)
         else:
             item['datatype'] = to_labber_format(type(v.default))
-        item['group'] = title# labber_delimiter(section.upper(), group.upper())
+        item['group'] = title
         item['section'] = section.upper()
         if v.default != inspect._empty:
             if 'enum' in str(type(v.default)):
@@ -125,7 +125,7 @@ def function_to_group(obj, section: str, title: str) -> t.Dict:
 
     d = {
         'label': 'Executefunc', 
-        'datatype': dt, 
+        'datatype': dt,
         'permission': permission,
         'group': title, #labber_delimiter(section.upper(), group.upper()),
         'section': section.upper() if section else 'DEVICE',

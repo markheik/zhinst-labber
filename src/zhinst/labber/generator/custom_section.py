@@ -3,7 +3,7 @@ from .helpers import tooltip
 
 
 class CustomLabel:
-    def __init__(self, name: str, section: str, group: str):
+    def __init__(self, name: str, section: str = '', group: str = ''):
         self._name = name
         self._section = section
         self._group = group
@@ -19,7 +19,7 @@ class CustomLabel:
     def __getitem__(self, key):
         return self._items[key]
 
-    def add_enum(self, cmd_def: str, combo_def: str, desc: str):
+    def add_enum(self, cmd_def: str, combo_def: str, desc: str = ''):
         self._combos.append((cmd_def, combo_def, desc))
 
     def tooltip(self, desc: str, node: t.Optional[str] = None):
@@ -32,21 +32,25 @@ class CustomLabel:
     def combos(self) -> t.Dict:
         d = {}
         for idx,c in enumerate(self._combos, 1):
-            d[f'cmd_def{idx}'] = c[0]
-            d[f'combo_def{idx}'] = c[1]
+            d[f'cmd_def_{idx}'] = c[0]
+            d[f'combo_def_{idx}'] = c[1]
             self._tt_enums.append(f'{c[1]}: {c[2]}')
         return d
 
-    def to_config(self):
+    def to_config(self, flat=False):
         d = {
             'group': self._group,
             'section': self._section
         }
         for k, v in self._items.items():
             d[k] = v
+        if self._combos:
+            d['datatype'] = 'COMBO'
         for idx,c in enumerate(self._combos, 1):
-            d[f'cmd_def{idx}'] = c[0]
-            d[f'combo_def{idx}'] = c[1]
+            d[f'cmd_def_{idx}'] = c[0]
+            d[f'combo_def_{idx}'] = c[1]
             self._tt_enums.append(f'{c[1]}: {c[2]}')
         d['tooltip'] = tooltip(self._tt_desc, self._tt_node, self._tt_enums)
+        if flat:
+            return d
         return {self._name: d}
