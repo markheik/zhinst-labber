@@ -49,9 +49,8 @@ class LabberConfig:
         self.root = root
         self.session = session
         self._mode = mode
-        self.settings = {}
         self._base_dir = "Zurich_Instruments_"
-        self._name = "DEVICE"
+        self._name = "SYSTEM"
         self._settings_path = "settings.json"
 
     @property
@@ -75,6 +74,10 @@ class LabberConfig:
     def custom_sections(self) -> dict:
         return {}
 
+    @property
+    def settings(self) -> dict:
+        return {}
+
     def general_settings(self) -> dict:
         return {}
 
@@ -87,31 +90,33 @@ class LabberConfig:
         general.update(self._sort(nodes))
         return general
 
-    def generate_nodes(self) -> t.Dict[str, dict]:
-        ignored = []
+    def _ignored_nodes(self) -> list:
         for key in IGNORED_NODES[self._mode].keys():
             if key in self._name:
-                ignored = (
-                    IGNORED_NODES["ADVANCED"][key] + IGNORED_NODES["ADVANCED"]["COMMON"]
-                )
+                adv = IGNORED_NODES["ADVANCED"][key]
+                adv_common = IGNORED_NODES["ADVANCED"]["COMMON"]
+                ignored = adv + adv_common
                 if self._mode == "NORMAL":
-                    ignored = (
-                        IGNORED_NODES["NORMAL"][key]
-                        + IGNORED_NODES["NORMAL"]["COMMON"]
-                        + ignored
-                    )
-                break
-        config_dict = {}
+                    normal = IGNORED_NODES["NORMAL"][key]
+                    norm_common = IGNORED_NODES["NORMAL"]["COMMON"]
+                    ignored = normal + norm_common + ignored
+                return ignored
+        return []
+
+    def generate_nodes(self) -> t.Dict[str, dict]:
         nodes = {}
         for _, info in self.root:
-            if node_in_ignored(info["Node"], ignored):
+            if node_in_ignored(info["Node"], self._ignored_nodes()):
                 continue
             sec = NodeSection(info)
             sec_dict = sec.as_dict()[sec.label]
             for k, v in REPLACED_NODES.items():
                 if k in self._name:
-                    r = REPLACED_NODES[k].get(replace_node_ch_n(sec.filtered_node_path), {})
-                    sec_dict.update(r)
+                    for kk, vv in v.items():
+                        r = fnmatch.filter([sec.filtered_node_path.upper()], f'{kk}*')
+                        if r:
+                            sec_dict.update(vv)
+                            break
             for k, v in NODE_SECTIONS.items():
                 if k in self._name:
                     for kk, vv in v.items():
@@ -129,6 +134,7 @@ class LabberConfig:
                             break
             nodes[sec.filtered_node_path] = {sec.label: sec_dict}
 
+        config_dict = {}
         for v in nodes.values():
             config_dict.update(v)
         return config_dict
@@ -181,6 +187,7 @@ class DeviceConfig(LabberConfig):
         sections = {}
         return sections
 
+    @property
     def settings(self) -> dict:
         return {
             "data_server": {
@@ -209,6 +216,7 @@ class DataServerConfig(LabberConfig):
         super().__init__(session, session, mode)
         self._name = "DataServer"
 
+    @property
     def settings(self) -> dict:
         return {
             "data_server": {
@@ -240,6 +248,7 @@ class ModuleConfig(LabberConfig):
         super().__init__(self.module, session, mode)
         self._name = name.upper() + '_Module'
 
+    @property
     def settings(self) -> dict:
         return {
             "data_server": {

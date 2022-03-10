@@ -3,10 +3,13 @@ from collections import defaultdict
 from zhinst.toolkit.driver.nodes.generator import Generator
 from zhinst.toolkit.driver.devices.base import BaseInstrument
 from zhinst.toolkit.driver.devices.shfqa import SHFScope
+from zhinst.toolkit.driver.nodes.awg import AWG
 from zhinst.toolkit.driver.modules.shfqa_sweeper import SHFQASweeper
 from zhinst.toolkit.driver.nodes.readout import Readout
 from zhinst.labber.generator.helpers import tooltip
 
+
+NUMBER_OF_WAVEFORMS_TO_DISPLAY = 16
 
 _IGNORED_FUNCTIONS_NORMAL = []
 _IGNORED_FUNCTIONS_ADVANCED = [
@@ -18,7 +21,8 @@ _IGNORED_FUNCTIONS_ADVANCED = [
     SHFQASweeper.plot,
     Readout.read_integration_weights,
     Generator.read_from_waveform_memory,
-    SHFScope.configure
+    SHFScope.configure,
+    AWG.read_from_waveform_memory
 ]
 
 IGNORED_FUNCTIONS = {
@@ -29,6 +33,7 @@ IGNORED_FUNCTIONS = {
 # Ignore everything by replacing '*' to channels:
 # Example: '/STATS/*/PHYSICAL/VOLTAGES/*'
 
+# NAME. UNIT SAMPLE; #
 _IGNORED_NODES = {
     'NORMAL': defaultdict(list, **{
         'SHFQA': [
@@ -37,6 +42,15 @@ _IGNORED_NODES = {
             '/QACHANNELS/*/GENERATOR/SEQUENCER/STATUS',
             '/QACHANNELS/*/GENERATOR/SEQUENCER/TRIGGERED',
             '/QACHANNELS/*/GENERATOR/ELF/*'
+        ],
+        'SHFQA_SWEEPER': [
+            '/PLOT/*'
+        ],
+        'HDAWG': [
+            '/AWGS/*/ELF/*',
+            '/AWGS/*/SEQUENCER/MEMORYUSAGE',
+            '/AWGS/*/SEQUENCER/STATUS',
+            '/AWGS/*/SEQUENCER/TRIGGERED',
         ],
         'AWG': [],
         'COMMON': [
@@ -48,19 +62,16 @@ _IGNORED_NODES = {
             '/SYSTEM/NICS/*',
             '/SYSTEM/PROPERTIES/*'
         ],
-        'SHFQA_SWEEPER': [
-            '/PLOT/*'
-        ]
     }),
     'ADVANCED': defaultdict(list, **{
-    'AWG': [
-        '/ELF/*'
-    ],
-    'COMMON': [
-        '/FEATURES/*'
-    ],
-    'SHFQA': [],
-})
+        'AWG': [
+            '/ELF/*'
+        ],
+        'COMMON': [
+            '/FEATURES/*'
+        ],
+        'SHFQA': [],
+    })
 }
 
 # Example:
@@ -71,34 +82,18 @@ _IGNORED_NODES = {
 #     }
 # }
 _REPLACED_NODES = {
-    'SHFQA': {}
-}
-
-
-_EXPANDED_NODES = {
     'SHFQA': {
-        '/QACHANNELS/*/GENERATOR/Waveforms/*/Wave' : [
-            {
-                'label': 'Wave0',
-                'datatype': 'PATH',
-                'set_cmd': '*.csv',
-            },
-            {
-                'label': 'Wave1',
-                'datatype': 'PATH',
-                'set_cmd': '*.csv',
-            },
-            {
-                'label': 'Markers',
-                'datatype': 'PATH',
-                'set_cmd': '*.csv',
-            },
-            {
-                'label': 'To Device',
-                'datatype': 'PATH',
-                'set_cmd': '*.csv',
-            },
-        ]
+        '/QACHANNELS/*/GENERATOR/Waveforms/*/Wave': {
+            'datatype': 'VECTOR_COMPLEX'
+        },
+    },
+    'HDAWG': {
+        '*/COMMANDTABLE/DATA': {
+            'datatype': 'STRING'
+        },
+        '*/IMP50': {
+            'datatype': 'BOOLEAN'
+        }
     }
 }
 
@@ -110,10 +105,18 @@ NODE_SECTIONS = {
         '/QACHANNELS/*/READOUT*': 'QA Result',
         '/QACHANNELS/*/TRIGGERS/*': 'Input - Output',
         '/SCOPES/*': 'Scopes',
-        '/DIOS*': 'Input - Output',
+        '/DIOS/*': 'Input - Output',
         '/QACHANNELS/*': 'QA Setup',
         '/SCOPES/TRIGGER/*': 'Input - Output',
         '/SYSTEM/CLOCKS/*': 'Input - Output'
+    },
+    'HDAWG': {
+        '/AWGS/*/DIO/*': 'DIO',
+        '/DIOS/*': 'DIO',
+        '/OSC/*': 'Oscillators',
+        '/AWGS/*/OUTPUTS/*': 'Outputs',
+        '/AWGS/*': 'AWG Sequencer',
+        '/SINES/*': 'Sine Generator',
     }
 }
 
@@ -146,6 +149,28 @@ REPLACED_FUNCTIONS = {
     SHFScope.read: {
         'Executefunc': {
             'datatype': 'BUTTON',
+        },
+        'Result 0': {
+            'label': "RESULT 0",
+            'datatype': "VECTOR_COMPLEX",
+            "show_in_measurement_dlg": "True",
+        },
+        'Result 1': {
+            'label': "RESULT 1",
+            'datatype': "VECTOR_COMPLEX",
+            "show_in_measurement_dlg": "True"
+        },
+        'Result 2': {
+            'label': "RESULT 2",
+            'datatype': "VECTOR_COMPLEX",
+            "show_in_measurement_dlg": "True",
+            'dev_type': ['SHFQA4']
+        },
+        'Result 3': {
+            'label': "RESULT 3",
+            'datatype': "VECTOR_COMPLEX",
+            "show_in_measurement_dlg": "True",
+            'dev_type': ['SHFQA4']
         }
     },
     SHFQASweeper.run: {
@@ -170,18 +195,26 @@ REPLACED_FUNCTIONS = {
         }
     },
     Generator.write_to_waveform_memory: {
-        'Pulses': {},
-        'Wave0': {
+        'Pulses': {
             'datatype': 'PATH',
             'set_cmd': '*.csv',
-            'label': 'Wave0',
-            'tooltip': tooltip('Waveform 0')
+            'label': 'Pulses'
         },
-        'Wave1': {
+    },
+    AWG.write_to_waveform_memory: {
+        'waveforms': {},
+        'indexes': {},
+        'Waves0': {
             'datatype': 'PATH',
             'set_cmd': '*.csv',
-            'label': 'Wave1',
-            'tooltip': tooltip('Waveform 1')
+            'label': 'Waves0',
+            'tooltip': tooltip('Waveforms 0')
+        },
+        'Waves1': {
+            'datatype': 'PATH',
+            'set_cmd': '*.csv',
+            'label': 'Waves1',
+            'tooltip': tooltip('Waveforms 1')
         },
         'Markers': {
             'datatype': 'PATH',

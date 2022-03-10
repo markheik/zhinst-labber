@@ -37,7 +37,7 @@ class NodeSection:
                 break
             if x.isnumeric():
                 return helpers.labber_delimiter(*parsed[0:idx])
-        return parsed[0]
+        return 'SYSTEM' # parsed[0]
 
     @property
     def group(self) -> str:
@@ -80,7 +80,9 @@ class NodeSection:
 
     @property
     def unit(self) -> t.Optional[str]:
-        if self.node["Unit"] == "None":
+        if self.node["Unit"].lower() == "none":
+            return None
+        if self.node["Unit"].lower() == 'dependent':
             return None
         unit = self.node["Unit"].replace("%", " percent").replace("'", "")
         # Remove degree signs etc.
@@ -92,7 +94,7 @@ class NodeSection:
         if "enumerated" in unit.lower():
             if not "READ" == self.permission:
                 return "COMBO"
-        boolean_nodes = ["ENABLE", "SINGLE", "ON"]
+        boolean_nodes = ["ENABLE", "SINGLE", "ON", 'BUSY']
         if self.node["Node"].split("/")[-1].upper() in boolean_nodes:
             return "BOOLEAN"
         if unit == "Double" or "integer" in unit.lower():
@@ -113,6 +115,9 @@ class NodeSection:
             return "VECTOR"
         if unit == "ZIDIOSample":
             return "VECTOR"
+        if unit == 'ZITriggerSample':
+            return 'STRING'
+        return 'STRING'
 
     @property
     def set_cmd(self) -> t.Optional[str]:
@@ -145,20 +150,4 @@ class NodeSection:
             d['get_cmd'] = self.get_cmd
         if self.show_in_measurement_dlg:
             d['show_in_measurement_dlg'] = self.show_in_measurement_dlg
-
-        # # Overwrite Sections
-        # r = REPLACED_NODES.get(replace_node_ch_n(self._node_path), {})
-        # d.update(r)
-        # for k, v in NODE_SECTIONS['SHFQA'].items():
-        #     r = fnmatch.filter([self._node_path.upper()], f'{k}*')
-        #     if r:
-        #         d['section'] = v
-        #         break
-        # # Overwrite groups
-        # for k, v in NODE_GROUPS['SHFQA'].items():
-        #     r = fnmatch.filter([self._node_path.upper()], f'{k}*')
-        #     if r:
-        #         d['group'] = v
-        #         break
-
         return {self.label: d}

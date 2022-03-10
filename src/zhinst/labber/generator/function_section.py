@@ -27,13 +27,15 @@ class FunctionParser:
         self.nodes = nodes
         self.ignores = ignores
         self._functions = []
-        self.root = 'DEVICE'
+        self.root = 'SYSTEM'
 
     def get_functions(self, obj: object) -> t.List[t.Dict[str, str]]:
-        self._function_generator(obj, 'DEVICE')
+        self._function_generator(obj, 'SYSTEM')
         return self._functions
 
     def _function_generator(self, obj, parent: str) -> None:
+        """"""
+        # Only 2 layers to properties
         if obj in self.ignores:
             return
         for name, attr in vars(obj).items():
@@ -119,8 +121,8 @@ def function_to_group(obj, section: str, title: str) -> t.Dict:
         permission = 'WRITE'
 
     d = {
-        'label': 'Executefunc', 
-        'datatype': dt,
+        'label': 'Executefunc', # From inc
+        'datatype': 'BOOLEAN',
         'permission': permission,
         'group': title,
         'section': section.upper() if section else 'DEVICE',
@@ -131,7 +133,6 @@ def function_to_group(obj, section: str, title: str) -> t.Dict:
     else:
         d['get_cmd'] = labber_delimiter(section.upper(), group.upper())
     items[labber_delimiter(title, d['label'])] = d
-    
 
     item_keys = [x.lower() for x in items.keys()]
     try:

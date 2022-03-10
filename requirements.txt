@@ -1,5 +1,5 @@
-zhinst-toolkit >= 0.2.3
+zhinst-toolkit >= 0.2.3, ~= 0.3
 numpy >= 1.20.0
 click >= 8.0
-jinja >= 3.0
+Jinja2 >= 3.0
 docstring-parser >= 0.13
