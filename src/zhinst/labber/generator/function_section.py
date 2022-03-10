@@ -4,7 +4,7 @@ from docstring_parser import parse
 import typing as t
 
 from zhinst.toolkit.nodetree import Node
-from .helpers import labber_delimiter, to_labber_format, tooltip
+from .helpers import labber_delimiter, to_labber_format, tooltip, to_labber_combo_def
 from .conf import REPLACED_FUNCTIONS
 
 
@@ -85,10 +85,10 @@ def function_to_group(obj, section: str, title: str) -> t.Dict:
             else:
                 item['def_value'] = str(v.default)
         item['permission'] = 'WRITE'
+        if item['datatype'] == 'PATH':
+            item['set_cmd'] = '*.csv'
         if item['datatype'] == 'COMBO':
-            for idx, enum in enumerate(v.annotation, 1):
-                item[f'cmd_def_{idx}'] = str(enum.value)
-                item[f'combo_def_{idx}'] = str(enum.name)
+            item.update(to_labber_combo_def(v.annotation))
 
         for param in docstring.params:
             if k == param.arg_name:
@@ -100,11 +100,6 @@ def function_to_group(obj, section: str, title: str) -> t.Dict:
                         enum = [f'{k.name}: {k.value}' for k in type(v.default)]
 
                 item['tooltip'] = tooltip(param.description, enum=enum)
-        try:
-            s = REPLACED_FUNCTIONS[obj][k]
-            item.update(s)
-        except KeyError:
-            ...
         items[labber_delimiter(title, item['label'])] = item
 
     if return_type != inspect._empty and return_type is not None:
@@ -127,26 +122,31 @@ def function_to_group(obj, section: str, title: str) -> t.Dict:
         'label': 'Executefunc', 
         'datatype': dt,
         'permission': permission,
-        'group': title, #labber_delimiter(section.upper(), group.upper()),
+        'group': title,
         'section': section.upper() if section else 'DEVICE',
         'tooltip': tooltip(docstring.short_description),
     }
     if permission == 'WRITE' and dt == 'PATH':
-        d['set_cmd'] = '.csv'
+        d['set_cmd'] = '*.csv'
     else:
         d['get_cmd'] = labber_delimiter(section.upper(), group.upper())
-    try:
-        s = REPLACED_FUNCTIONS[obj][d['label']]
-        d.update(s)
-    except KeyError:
-        ...
     items[labber_delimiter(title, d['label'])] = d
+    
+
+    item_keys = [x.lower() for x in items.keys()]
     try:
-        for k, v in deepcopy(REPLACED_FUNCTIONS[obj]).items():
-            if k not in items.keys():
-                title_ = labber_delimiter(title, v['label'])
-                v['group'] = title
-                items[title_] = v
+        for k, v in REPLACED_FUNCTIONS[obj].items():
+            _v = deepcopy(v)
+            title_ = labber_delimiter(title, v.get('label', k))
+            if title_.lower() in item_keys:
+                if not _v:
+                    items.pop(title_, None)
+                else:
+                    items[title_].update(_v)
+            else:
+                _v['group'] = title
+                _v['section'] = v.get('section', section)
+                items[title_] = _v
     except KeyError:
         ...
     return items

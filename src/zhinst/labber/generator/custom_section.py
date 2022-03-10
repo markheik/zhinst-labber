@@ -19,14 +19,14 @@ class CustomLabel:
     def __getitem__(self, key):
         return self._items[key]
 
-    def add_enum(self, cmd_def: str, combo_def: str, desc: str = ''):
+    def add_enum(self, cmd_def: str, combo_def: str, desc: str = '') -> None:
         self._combos.append((cmd_def, combo_def, desc))
 
-    def tooltip(self, desc: str, node: t.Optional[str] = None):
+    def tooltip(self, desc: str, node: t.Optional[str] = None) -> None:
         self._tt_desc = desc
         self._tt_node = node
 
-    def items(self):
+    def items(self) -> dict:
         return self._items
 
     def combos(self) -> t.Dict:
@@ -37,7 +37,7 @@ class CustomLabel:
             self._tt_enums.append(f'{c[1]}: {c[2]}')
         return d
 
-    def to_config(self, flat=False):
+    def to_config(self, flat=False) -> t.Union[dict, t.Dict[str, dict]]:
         d = {
             'group': self._group,
             'section': self._section

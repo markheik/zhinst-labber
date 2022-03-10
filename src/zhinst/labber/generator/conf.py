@@ -8,22 +8,27 @@ from zhinst.toolkit.driver.nodes.readout import Readout
 from zhinst.labber.generator.helpers import tooltip
 
 
+_IGNORED_FUNCTIONS_NORMAL = []
+_IGNORED_FUNCTIONS_ADVANCED = [
+    BaseInstrument.check_compatibility,
+    BaseInstrument.get_streamingnodes,
+    BaseInstrument.get_as_event,
+    BaseInstrument.set_transaction,
+    SHFQASweeper.get_result,
+    SHFQASweeper.plot,
+    Readout.read_integration_weights,
+    Generator.read_from_waveform_memory,
+    SHFScope.configure
+]
+
 IGNORED_FUNCTIONS = {
-    'NORMAL': [],
-    'ADVANCED': [
-        BaseInstrument.check_compatibility,
-        BaseInstrument.get_streamingnodes,
-        BaseInstrument.get_as_event,
-        BaseInstrument.set_transaction,
-        SHFQASweeper.get_result,
-        SHFQASweeper.plot,
-        Readout.read_integration_weights,
-        Generator.read_from_waveform_memory
-    ]
+    'NORMAL': _IGNORED_FUNCTIONS_NORMAL + _IGNORED_FUNCTIONS_ADVANCED,
+    'ADVANCED': _IGNORED_FUNCTIONS_ADVANCED
 }
 
 # Ignore everything by replacing '*' to channels:
 # Example: '/STATS/*/PHYSICAL/VOLTAGES/*'
+
 _IGNORED_NODES = {
     'NORMAL': defaultdict(list, **{
         'SHFQA': [
@@ -48,14 +53,14 @@ _IGNORED_NODES = {
         ]
     }),
     'ADVANCED': defaultdict(list, **{
-        'AWG': [
-            '/ELF/*'
-        ],
-        'COMMON': [
-            '/FEATURES/*'
-        ],
-        'SHFQA': [],
-    })
+    'AWG': [
+        '/ELF/*'
+    ],
+    'COMMON': [
+        '/FEATURES/*'
+    ],
+    'SHFQA': [],
+})
 }
 
 # Example:
@@ -65,9 +70,36 @@ _IGNORED_NODES = {
 #         'UNIT': 'AMPLITUDE'
 #     }
 # }
-
 _REPLACED_NODES = {
     'SHFQA': {}
+}
+
+
+_EXPANDED_NODES = {
+    'SHFQA': {
+        '/QACHANNELS/*/GENERATOR/Waveforms/*/Wave' : [
+            {
+                'label': 'Wave0',
+                'datatype': 'PATH',
+                'set_cmd': '*.csv',
+            },
+            {
+                'label': 'Wave1',
+                'datatype': 'PATH',
+                'set_cmd': '*.csv',
+            },
+            {
+                'label': 'Markers',
+                'datatype': 'PATH',
+                'set_cmd': '*.csv',
+            },
+            {
+                'label': 'To Device',
+                'datatype': 'PATH',
+                'set_cmd': '*.csv',
+            },
+        ]
+    }
 }
 
 # First will be executed if match is found
@@ -108,11 +140,12 @@ REPLACED_FUNCTIONS = {
     Generator.load_sequencer_program: {
         'sequencer_program': {
             'datatype': 'PATH',
+            'set_cmd': '*.csv',
         }
     },
     SHFScope.read: {
         'Executefunc': {
-            'datatype': 'BUTTON'
+            'datatype': 'BUTTON',
         }
     },
     SHFQASweeper.run: {
@@ -122,32 +155,39 @@ REPLACED_FUNCTIONS = {
         'Result': {
             'datatype': 'VECTOR',
             'label': 'Result',
+            'show_in_measurement_dlg': 'True'
         }
     },
     SHFQASweeper.get_offset_freq_vector: {
         'Executefunc': {
             'datatype': 'BUTTON'
+        },
+        'Frequency points': {
+            'datatype': 'VECTOR',
+            'label': 'Frequency points',
+            'permission': 'READ',
+            'show_in_measurement_dlg': 'True'
         }
     },
     Generator.write_to_waveform_memory: {
-        'pulses': {},
+        'Pulses': {},
         'Wave0': {
             'datatype': 'PATH',
-            'set_cmd': '.csv',
+            'set_cmd': '*.csv',
             'label': 'Wave0',
             'tooltip': tooltip('Waveform 0')
         },
         'Wave1': {
             'datatype': 'PATH',
-            'set_cmd': '.csv',
+            'set_cmd': '*.csv',
             'label': 'Wave1',
             'tooltip': tooltip('Waveform 1')
         },
         'Markers': {
             'datatype': 'PATH',
-            'set_cmd': '.csv',
+            'set_cmd': '*.csv',
             'label': 'Markers',
-            'tooltip': tooltip('Markers.')
+            'tooltip': tooltip('Markers')
         },
     }
 }

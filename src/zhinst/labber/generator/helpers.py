@@ -1,5 +1,6 @@
 import typing as t
 import re
+from enum import Enum, IntEnum
 
 from zhinst.toolkit.nodetree import Node
 from zhinst.labber.generator import LABBER_DELIMITER_VALUE
@@ -11,6 +12,10 @@ def enum_description(value: str) -> t.Tuple[str, str]:
         v2 = v[0].split(',')
         return v2[0].strip('"'), v[-1]
     return "", v[0]
+
+def labber_delim_to_nodelike(s: str) -> str:
+    s = s.replace(LABBER_DELIMITER_VALUE, "/")
+    return "/" + s
 
 def to_labber_format(obj) -> str:
     TYPE_MAP = {
@@ -59,3 +64,21 @@ def tooltip(desc, node = None, enum = None) -> str:
 
 def delete_device_from_node_path(path: str) -> str:
     return re.sub(r"/DEV(\d+)", "", path)[0:]
+
+
+def to_labber_combo_def(
+    iterable_: t.Union[t.List[str], t.Dict[str, t.Union[str, int, float]], t.Any]):
+    enums = {}
+    if isinstance(iterable_, list):
+        for idx, enum in enumerate(iterable_, 1):
+            enums[f'cmd_def_{idx}'] = str(enum)
+            enums[f'combo_def_{idx}'] = str(enum)
+    elif isinstance(iterable_, dict):
+        for idx, (k, v) in enumerate(iterable_.items(), 1):
+            enums[f'cmd_def_{idx}'] = str(k)
+            enums[f'combo_def_{idx}'] = str(v)
+    elif issubclass(iterable_, (Enum, IntEnum)):
+        for idx, enum in enumerate(iterable_, 1):
+            enums[f'cmd_def_{idx}'] = str(enum.value)
+            enums[f'combo_def_{idx}'] = str(enum.name)
+    return enums

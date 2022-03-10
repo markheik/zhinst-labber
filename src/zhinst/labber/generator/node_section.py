@@ -1,18 +1,6 @@
 import typing as t
-import fnmatch
 
 from . import helpers
-from .conf import REPLACED_NODES, NODE_SECTIONS, NODE_GROUPS
-
-
-def replace_node_ch_n(node: str) -> str:
-    replaced = []
-    for c in node.upper().split('/'):
-        if c.isnumeric():
-            replaced.append('*')
-        else:
-            replaced.append(c)
-    return '/'.join(replaced)
 
 class NodeSection:
     def __init__(self, node: t.Dict):
@@ -158,19 +146,19 @@ class NodeSection:
         if self.show_in_measurement_dlg:
             d['show_in_measurement_dlg'] = self.show_in_measurement_dlg
 
-        # Overwrite Sections
-        r = REPLACED_NODES.get(replace_node_ch_n(self._node_path), {})
-        d.update(r)
-        for k, v in NODE_SECTIONS['SHFQA'].items():
-            r = fnmatch.filter([self._node_path.upper()], f'{k}*')
-            if r:
-                d['section'] = v
-                break
-        # Overwrite groups
-        for k, v in NODE_GROUPS['SHFQA'].items():
-            r = fnmatch.filter([self._node_path.upper()], f'{k}*')
-            if r:
-                d['group'] = v
-                break
+        # # Overwrite Sections
+        # r = REPLACED_NODES.get(replace_node_ch_n(self._node_path), {})
+        # d.update(r)
+        # for k, v in NODE_SECTIONS['SHFQA'].items():
+        #     r = fnmatch.filter([self._node_path.upper()], f'{k}*')
+        #     if r:
+        #         d['section'] = v
+        #         break
+        # # Overwrite groups
+        # for k, v in NODE_GROUPS['SHFQA'].items():
+        #     r = fnmatch.filter([self._node_path.upper()], f'{k}*')
+        #     if r:
+        #         d['group'] = v
+        #         break
 
         return {self.label: d}
