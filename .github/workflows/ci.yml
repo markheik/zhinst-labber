@@ -12,7 +12,7 @@ jobs:
     name: "Python ${{ matrix.python }}"
     runs-on: "ubuntu-latest"
     env:
-      USING_COVERAGE: "3.7"
+      USING_COVERAGE: "3.9"
     strategy:
       matrix:
         name: [py37, py38, py39, py310]
@@ -45,5 +45,5 @@ jobs:
         run: |
           pytest --cov=zhinst.labber tests/
       - name: codecov
-        uses: codecov/codecov-action@v1
         if: matrix.coverage
+        codecov
