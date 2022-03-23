@@ -9,7 +9,7 @@ on:
 
 jobs:
   tests:
-    name: "Python ${{ matrix.python-version }}"
+    name: "Python ${{ matrix.python }}"
     runs-on: "ubuntu-latest"
     env:
       USING_COVERAGE: "3.7"
